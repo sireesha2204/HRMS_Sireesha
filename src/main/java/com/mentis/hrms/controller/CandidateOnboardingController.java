@@ -31,9 +31,21 @@ import java.util.stream.Collectors;
 import com.mentis.hrms.model.enums.UserRole;
 import com.mentis.hrms.service.EmployeeService;
 
+import com.mentis.hrms.model.Attendance;
+import com.mentis.hrms.model.Employee;
+import com.mentis.hrms.service.AttendanceService;  // ADD THIS IMPORT
+import com.mentis.hrms.service.EmployeeService;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
 @Controller
 @RequestMapping("/candidate")
+
+
 public class CandidateOnboardingController {
+    @Autowired
+    private AttendanceService attendanceService;
+
 
     // ADD THIS BACK - You need a GET handler for the login page
     @GetMapping("/login")
@@ -131,6 +143,35 @@ public class CandidateOnboardingController {
 
             logger.info("✅ Login Successful. User: {}, Role: {}", employeeId, employee.getRole());
 
+
+            /* ==================== ATTENDANCE AUTO CHECK-IN ==================== */
+            logger.info(">>> CHECK-IN START (OnboardingController): Employee {} with role {}", employeeId, employee.getRole().name());
+
+            try {
+                String roleName = employee.getRole().name();
+                String cleanRole = roleName.replace("ROLE_", "").toUpperCase();
+                boolean isEligible = "EMPLOYEE".equals(cleanRole) || "HR".equals(cleanRole);
+
+                if (isEligible) {
+                    Attendance attendance = attendanceService.checkIn(employeeId);
+                    newSession.setAttribute("todayAttendance", attendance);
+                    newSession.setAttribute("attendanceStatus", attendance.getStatus());
+
+                    if (attendance.getCheckInTime() != null) {
+                        long checkInMillis = attendance.getCheckInTime()
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .toInstant()
+                                .toEpochMilli();
+                        newSession.setAttribute("checkInTimeMillis", checkInMillis);
+                    }
+                    logger.info(">>> CHECK-IN SUCCESS (OnboardingController): {}", attendance.getCheckInTime());
+                }
+            } catch (Exception e) {
+                logger.error(">>> CHECK-IN FAILED (OnboardingController): {}", e.getMessage());
+            }
+            /* ==================== END ATTENDANCE BLOCK ==================== */
+
+
             // 7. Explicit Role-Based Redirection
             // This ensures the user lands on the correct dashboard immediately
             switch (employee.getRole()) {
@@ -154,6 +195,8 @@ public class CandidateOnboardingController {
             return "redirect:/candidate/login";
         }
     }
+
+
 
     /*  ==================== 3. CREATE PASSWORD PAGE ====================  */
     @GetMapping("/create-password")

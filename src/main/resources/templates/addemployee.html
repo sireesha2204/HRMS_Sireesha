@@ -1003,7 +1003,8 @@
             </div>
 
             <!-- Form Container -->
-            <form id="employeeForm" method="POST" action="/dashboard/save-employee" enctype="multipart/form-data">
+            <!-- Change form action to use HR path -->
+            <form id="employeeForm" method="POST" action="/dashboard/hr/save-employee" enctype="multipart/form-data">
                 <div class="employee-form-container">
 
                     <!-- ========== STEP 1: JOB DETAILS ========== -->
@@ -2284,15 +2285,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /* ========== SUBMIT FORM ========== */
-    function submitEmployeeForm() {
-        if (!validateStep(4)) return;
+   /* ========== SUBMIT FORM ========== */
+function submitEmployeeForm() {
+    if (!validateStep(4)) return;
 
-        const submitBtn = document.getElementById('submitEmployeeBtn');
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving Employee...';
-        submitBtn.disabled = true;
+    const submitBtn = document.getElementById('submitEmployeeBtn');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving Employee...';
+    submitBtn.disabled = true;
 
-        document.getElementById('employeeForm').submit();
+    // Format dateOfBirth for proper submission
+    const dateOfBirthInput = document.getElementById('dateOfBirth');
+    if (dateOfBirthInput.value) {
+        // Format as YYYY-MM-DD
+        const date = new Date(dateOfBirthInput.value);
+        dateOfBirthInput.value = date.toISOString().split('T')[0];
     }
+
+    // Format startDate for proper submission
+    const startDateInput = document.getElementById('startDate');
+    if (startDateInput.value) {
+        const date = new Date(startDateInput.value);
+        startDateInput.value = date.toISOString().split('T')[0];
+    }
+
+    // Collect benefits
+    const selectedBenefits = [];
+    document.querySelectorAll('.benefit-toggle:checked').forEach(checkbox => {
+        selectedBenefits.push(checkbox.value);
+    });
+
+    // Add benefits as hidden inputs
+    selectedBenefits.forEach((benefit, index) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'benefits';
+        input.value = benefit;
+        document.getElementById('employeeForm').appendChild(input);
+    });
+
+    // Submit the form
+    document.getElementById('employeeForm').submit();
+}
 
     /* ========== PROFILE PICTURE ========== */
     function initProfilePicture() {

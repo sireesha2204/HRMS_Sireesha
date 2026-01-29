@@ -224,7 +224,18 @@
             transition: var(--transition);
             font-size: 14px;
         }
+/*  make the native icon white  */
+#deadlineInput::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(2);   /* pure white */
+    cursor: pointer;
+}
 
+/*  keep the field dark-theme  */
+#deadlineInput {
+    background: #0f172a;
+    color: #fff;
+    border: 1px solid #334155;
+}
         .deadline-icon-btn:hover {
             background: var(--primary);
             color: white;
@@ -232,51 +243,66 @@
             box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
         }
 
-        #deadlineInput::-webkit-calendar-picker-indicator {
-            filter: invert(1) brightness(2);
-            cursor: pointer;
-        }
+       .deadline-countdown-badge {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    min-width: fit-content;
+    white-space: nowrap;
+}
 
-        #deadlineInput {
-            background: #0f172a;
-            color: #fff;
-            border: 1px solid #334155;
-        }
+.deadline-label {
+    color: var(--dark-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
 
-        .deadline-countdown-badge {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-size: 12px;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 10px;
-            min-width: fit-content;
-            white-space: nowrap;
-        }
+.deadline-value {
+    font-weight: 700;
+    color: var(--danger);
+    font-size: 13px;
+}
 
-        .deadline-label {
-            color: var(--dark-text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 10px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+.deadline-date {
+    color: var(--dark-text-secondary);
+    font-size: 10px;
+}
+@media (max-width: 768px) {
+    .deadline-control-wrapper {
+        margin-left: 0;
+        margin-top: 10px;
+        width: 100%;
+        justify-content: center;
+    }
 
-        .deadline-value {
-            font-weight: 700;
-            color: var(--danger);
-            font-size: 13px;
-        }
+    /* Adjust horizontal layout for mobile */
+    .deadline-countdown-badge {
+        padding: 6px 10px;
+        gap: 6px;
+    }
 
-        .deadline-date {
-            color: var(--dark-text-secondary);
-            font-size: 10px;
-        }
+    .deadline-label {
+        font-size: 9px;
+    }
+
+    .deadline-value {
+        font-size: 11px;
+    }
+
+    .deadline-date {
+        font-size: 9px;
+    }
+}
 
         /* Color coding based on urgency */
         .deadline-countdown-badge.urgent {
@@ -349,34 +375,6 @@
         .documents-table td:nth-child(4) { text-align: left; font-size: 12px; color: var(--dark-text-secondary); }
         .documents-table td:nth-child(5) { text-align: center; }
 
-        /* STATUS BADGES - ADDED FROM DASHBOARD.HTML */
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            display: inline-block;
-            min-width: 75px;
-            text-align: center;
-        }
-        .status-submitted {
-            background: rgba(59, 130, 246, 0.15);
-            color: #60a5fa;
-        }
-        .status-verified {
-            background: rgba(16, 185, 129, 0.15);
-            color: #86efac;
-        }
-        .status-rejected {
-            background: rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
-        }
-        .status-pending {
-            background: rgba(148, 163, 184, 0.15);
-            color: #94a3b8;
-        }
-
         /* ACTION BUTTONS - ENHANCED */
         .action-buttons {
             display: flex;
@@ -406,59 +404,17 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
-        /* UPDATED: View button styling to match dashboard.html */
-        .btn-icon-view {
-            color: var(--info);
-            border-color: rgba(14, 165, 233, 0.3);
-            background: rgba(14, 165, 233, 0.1);
-        }
-        .btn-icon-view:hover {
-            background: var(--info);
-            color: white;
-        }
+        .btn-icon-details { color: #0ea5e9; border-color: rgba(14, 165, 233, 0.3); }
+        .btn-icon-upload { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-icon-download { color: #10b981; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.1); }
+        .btn-icon-verify { color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+        .btn-icon-reject { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
 
-        .btn-icon-details {
-            color: #0ea5e9;
-            border-color: rgba(14, 165, 233, 0.3);
-        }
-        .btn-icon-upload {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        .btn-icon-download {
-            color: #10b981;
-            border-color: rgba(16, 185, 129, 0.3);
-            background: rgba(16, 185, 129, 0.1);
-        }
-        .btn-icon-verify {
-            color: #10b981;
-            border-color: rgba(16, 185, 129, 0.3);
-        }
-        .btn-icon-reject {
-            color: #ef4444;
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .btn-icon-details:hover {
-            background: #0ea5e9;
-            color: white;
-        }
-        .btn-icon-upload:hover {
-            background: var(--primary-hover);
-        }
-        .btn-icon-download:hover {
-            background: #10b981;
-            color: white;
-        }
-        .btn-icon-verify:hover {
-            background: #10b981;
-            color: white;
-        }
-        .btn-icon-reject:hover {
-            background: #ef4444;
-            color: white;
-        }
+        .btn-icon-details:hover { background: #0ea5e9; color: white; }
+        .btn-icon-upload:hover { background: var(--primary-hover); }
+        .btn-icon-download:hover { background: #10b981; color: white; }
+        .btn-icon-verify:hover { background: #10b981; color: white; }
+        .btn-icon-reject:hover { background: #ef4444; color: white; }
 
         /* DOCUMENT NAME CELL */
         .doc-name-wrapper {
@@ -478,15 +434,6 @@
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-
-        /* ADDED: Red asterisk for mandatory documents */
-        .doc-mandatory {
-            font-size: 10px;
-            margin-left: 4px;
-            vertical-align: middle;
-            color: var(--danger) !important;
-            font-weight: bold;
         }
 
         /* MODALS - ENHANCED */
@@ -652,13 +599,11 @@
                                     <div class="doc-name" th:text="${doc.documentName}">Document Name</div>
                                     <div>
                                         <span class="doc-type" th:text="${doc.documentType}">TYPE</span>
-                                        <!-- ADDED: Red asterisk for mandatory documents -->
                                         <span th:if="${doc.mandatory}" class="doc-mandatory">*</span>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <!-- UPDATED: Status badge with proper styling -->
                                 <span th:class="'status-badge status-' + ${doc.status.toLowerCase()}" th:text="${doc.status}"></span>
                             </td>
                             <td>
@@ -678,7 +623,6 @@
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <!-- UPDATED: View button with blue styling -->
                                     <button th:if="${doc.filePath != null}"
                                             class="btn-icon btn-icon-view"
                                             th:data-doc-id="${doc.id}"

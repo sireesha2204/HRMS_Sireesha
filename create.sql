@@ -5126,3 +5126,1980 @@
 
     alter table offer_letters 
        modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);
+
+    alter table attendance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       modify column employee_id varchar(255) not null;
+
+    alter table employee_leave_balance 
+       add column remaining_days float(53);
+
+    alter table employee_leave_balance 
+       add column total_allocated integer;
+
+    alter table employee_leave_balance 
+       add column used_days float(53);
+
+    alter table employee_leave_balance 
+       modify column year integer;
+
+    alter table employees 
+       modify column profile_color varchar(255);
+
+    alter table leave_requests 
+       modify column id varchar(255) not null;
+
+    alter table leave_requests 
+       modify column approved_by varchar(255);
+
+    alter table leave_requests 
+       add column approved_date date;
+
+    alter table leave_requests 
+       add column contact_number varchar(255);
+
+    alter table leave_requests 
+       modify column employee_id varchar(255) not null;
+
+    alter table leave_requests 
+       add column half_day_type enum ('FIRST_HALF','FULL_DAY','SECOND_HALF');
+
+    alter table leave_requests 
+       add column total_days float(53) not null;
+
+    alter table leave_types 
+       add column total_days integer;
+
+    alter table leave_types 
+       add column type_name varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_id varchar(255) not null;
+
+    alter table notifications 
+       modify column recipient_type varchar(255) not null;
+
+    alter table notifications 
+       modify column reference_id varchar(255);
+
+    alter table notifications 
+       modify column reference_type varchar(255);
+
+    alter table notifications 
+       modify column sender varchar(255);
+
+    alter table notifications 
+       modify column title varchar(255) not null;
+
+    alter table notifications 
+       modify column type varchar(255) not null;
+
+    alter table offer_letters 
+       modify column employee_id varchar(255);

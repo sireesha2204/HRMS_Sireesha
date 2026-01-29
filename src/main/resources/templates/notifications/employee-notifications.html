@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org ">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Notifications - Menti's IT Solutions</title>
 
     <!-- ===== EXTERNAL LIBS ===== -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css " rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css ">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300 ;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -445,29 +445,6 @@
             margin: 0;
         }
 
-        /* INFORMATION BANNER */
-        .info-banner {
-            background: rgba(14, 165, 233, 0.1);
-            border: 1px solid rgba(14, 165, 233, 0.2);
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .info-banner i {
-            color: var(--info);
-            font-size: 16px;
-        }
-
-        .info-banner p {
-            margin: 0;
-            color: var(--dark-text);
-            font-size: 13px;
-        }
-
         /* RESPONSIVE */
         @media (max-width: 768px) {
             .main-container {
@@ -556,7 +533,7 @@
         <div class="page-header">
             <h1 class="page-title">
                 <i class="fas fa-bell"></i>
-                Permanent Notifications
+                My Notifications
             </h1>
 
             <div class="header-actions">
@@ -566,23 +543,17 @@
                 </button>
                 <a th:href="@{/candidate/dashboard/{id}(id=${employee.employeeId})}" class="btn-outline-primary">
                     <i class="fas fa-arrow-left"></i>
-                    Back to Dashboard
+                    Back
                 </a>
             </div>
-        </div>
-
-        <!-- INFORMATION BANNER -->
-        <div class="info-banner">
-            <i class="fas fa-info-circle"></i>
-            <p>Showing only permanent notifications. Temporary notifications (like deadline warnings) appear only in your dashboard dropdown.</p>
         </div>
 
         <!-- NOTIFICATIONS LIST -->
         <div class="notifications-container" id="notificationsList">
             <div th:if="${notifications.empty}" class="empty-state">
                 <i class="fas fa-bell-slash"></i>
-                <h3>No permanent notifications yet</h3>
-                <p>Your permanent notifications will appear here. Temporary notifications show only in your dashboard dropdown.</p>
+                <h3>No notifications yet</h3>
+                <p>When you receive updates, they'll appear here</p>
             </div>
 
             <div th:each="notif : ${notifications}"
@@ -698,23 +669,21 @@
         });
     }
 
-    // ✅ AUTO-REFRESH EVERY 30 SECONDS FOR PERSISTENT NOTIFICATIONS ONLY
+    // ✅ AUTO-REFRESH EVERY 30 SECONDS
     setInterval(() => {
-        console.log("🔄 Auto-refreshing persistent notifications...");
+        console.log("🔄 Auto-refreshing notifications...");
         fetch('/notifications/api/recent?limit=10')
             .then(response => response.json())
             .then(notifications => {
-                console.log('✅ Persistent notifications refreshed:', notifications.length);
-                // Only reload if there are new persistent notifications
-                const currentCount = document.querySelectorAll('.notification-card').length;
-                if (notifications.length > currentCount) {
+                console.log('✅ Notifications refreshed:', notifications.length);
+                if (notifications.length > document.querySelectorAll('.notification-card').length) {
                     location.reload();
                 }
             })
             .catch(error => console.error('❌ Auto-refresh error:', error));
     }, 30000);
 
-    // ✅ WEBSOCKET CONNECTION FOR REAL-TIME UPDATES
+    // ✅ WEBSOCKET CONNECTION
     let stompClient = null;
 
     function connectWebSocket() {
@@ -724,16 +693,15 @@
             stompClient.debug = () => {};
 
             stompClient.connect({}, function(frame) {
-                console.log('✅ WebSocket connected for notifications');
+                console.log('✅ WebSocket connected for employee notifications');
                 stompClient.subscribe(`/topic/employee/${currentEmployeeId}/notifications`, function(message) {
                     const notification = JSON.parse(message.body);
                     console.log('📨 Real-time notification received:', notification);
-
-                    // Only reload for persistent notifications
                     if (notification.persistent) {
                         location.reload();
+                    } else {
+                        showTemporaryToast(notification);
                     }
-                    // Temporary notifications are ignored on this page
                 });
             });
         } catch (error) {
@@ -741,12 +709,82 @@
         }
     }
 
+    function showTemporaryToast(notification) {
+        console.log("📢 Showing temporary toast:", notification);
+        const toast = document.createElement('div');
+        toast.className = 'notification-toast';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            overflow: hidden;
+            max-width: 350px;
+        `;
+
+        const iconClass = getIconForType(notification.type);
+        const iconColor = getColorForType(notification.type);
+
+        toast.innerHTML = `
+            <div class="toast-header">
+                <strong style="color: ${iconColor};">
+                    <i class="fas ${iconClass}" style="margin-right: 8px;"></i>
+                    ${notification.title}
+                </strong>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: var(--dark-text-secondary); font-size: 18px; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="toast-body">
+                ${notification.message}
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 5000);
+    }
+
+    function getIconForType(type) {
+        if (type.includes('VERIFIED')) return 'fa-check-circle';
+        if (type.includes('REJECTED')) return 'fa-times-circle';
+        if (type.includes('WARNING')) return 'fa-exclamation-triangle';
+        if (type.includes('UPLOADED')) return 'fa-file-upload';
+        return 'fa-bell';
+    }
+
+    function getColorForType(type) {
+        if (type.includes('VERIFIED')) return 'var(--success)';
+        if (type.includes('REJECTED')) return 'var(--danger)';
+        if (type.includes('WARNING')) return 'var(--warning)';
+        return 'var(--info)';
+    }
+
     // ✅ INITIALIZE ON PAGE LOAD
     document.addEventListener('DOMContentLoaded', function() {
         console.log("🚀 Initializing employee notifications page...");
-        console.log("ℹ️  This page shows ONLY persistent notifications");
-        console.log("ℹ️  Temporary notifications appear only in dashboard dropdown");
         connectWebSocket();
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
     });
 </script>
 </body>

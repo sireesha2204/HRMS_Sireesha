@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import org.springframework.context.annotation.Lazy;
 @Service
 @Transactional
@@ -157,47 +156,7 @@ public class NotificationService {
                 false  // Temporary
         );
     }
-// In NotificationService.java
 
-    // Temporary deadline warning (toast + dropdown)
-    public void sendTemporaryDeadlineWarning(Employee employee, long hoursLeft) {
-        String timeUnit = hoursLeft >= 24 ? (hoursLeft/24) + " days" : hoursLeft + " hours";
-
-        // Send WebSocket message for toast
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("id", UUID.randomUUID().toString());
-        payload.put("type", "DEADLINE_WARNING");
-        payload.put("title", "⚠️ Document Deadline Approaching");
-        payload.put("message", "You have " + timeUnit + " left to upload all required documents");
-        payload.put("createdAt", LocalDateTime.now().toString());
-        payload.put("read", false);
-        payload.put("persistent", false); // Temporary
-        payload.put("color", "warning");
-        payload.put("icon", "fa-clock");
-
-        String topic = String.format("/topic/employee/%s/notifications", employee.getEmployeeId());
-        messagingTemplate.convertAndSend(topic, payload);
-
-        // Also create temporary notification that won't be saved to DB
-        // This is handled client-side
-    }
-
-    // Temporary deadline reached
-    public void sendTemporaryDeadlineReached(Employee employee) {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("id", UUID.randomUUID().toString());
-        payload.put("type", "DEADLINE_REACHED");
-        payload.put("title", "⏰ Document Upload Deadline Reached");
-        payload.put("message", "Your document upload deadline has passed. Please contact HR immediately.");
-        payload.put("createdAt", LocalDateTime.now().toString());
-        payload.put("read", false);
-        payload.put("persistent", false);
-        payload.put("color", "danger");
-        payload.put("icon", "fa-exclamation-triangle");
-
-        String topic = String.format("/topic/employee/%s/notifications", employee.getEmployeeId());
-        messagingTemplate.convertAndSend(topic, payload);
-    }
     // Document verified (persistent for employee)
     public void notifyDocumentVerified(OnboardingDocument document, String verifiedBy) {
         Employee employee = document.getEmployee();

@@ -1,5 +1,15 @@
 package com.mentis.hrms.controller;
-
+// Add these imports
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.mentis.hrms.model.Employee;
+import com.mentis.hrms.service.EmployeeService;
+import jakarta.servlet.http.HttpSession;
+import java.io.File;
+import java.util.List;
 import com.mentis.hrms.service.DashboardService;
 import com.mentis.hrms.service.OfferService;
 import jakarta.servlet.http.HttpSession; // ✅ Ensure this import is present
@@ -13,7 +23,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+// Add these imports at the top
+import com.mentis.hrms.model.Employee;
+import com.mentis.hrms.service.EmployeeService;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.multipart.MultipartFile;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 @Controller
 @RequestMapping("/dashboard/hr")
 public class HrDashboardController {
@@ -24,6 +41,8 @@ public class HrDashboardController {
 
     @Autowired
     private OfferService offerService;
+    @Autowired
+    private EmployeeService employeeService; // Add this
 
     /* ========== HR DASHBOARD HOME ========== */
     @GetMapping
@@ -55,6 +74,81 @@ public class HrDashboardController {
         logger.info("✅ HR Dashboard loaded for user: {} (Role: {})",
                 session.getAttribute("userName"), role);
         return "dashboard";
+    }
+    /* ========== SAVE EMPLOYEE ========== */
+    @PostMapping("/save-employee")
+    public String saveEmployee(@ModelAttribute Employee employee,
+                               @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture,
+                               @RequestParam(value = "benefits", required = false) List<String> benefits,
+                               HttpSession session,
+                               RedirectAttributes ra) {
+        logger.info("=== SAVING EMPLOYEE: {} {} ===", employee.getFirstName(), employee.getLastName());
+
+        try {
+            // 1. Check authorization
+            String role = (String) session.getAttribute("userRole");
+            if (!"HR".equals(role) && !"SUPER_ADMIN".equals(role)) {
+                ra.addFlashAttribute("error", "Unauthorized access");
+                return "redirect:/candidate/login";
+            }
+
+            // 2. Handle profile picture upload
+            if (profilePicture != null && !profilePicture.isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + profilePicture.getOriginalFilename();
+                String uploadDir = "C:/hrms/uploads/employee-profiles/";
+
+                // Create directory if not exists
+                File dir = new File(uploadDir);
+                if (!dir.exists()) {
+                    dir.mkdirs();
+                }
+
+                // Save file
+                File file = new File(dir.getAbsolutePath() + File.separator + fileName);
+                profilePicture.transferTo(file);
+
+                // Set profile picture path relative to uploads
+                employee.setProfilePicture("employee-profiles/" + fileName);
+            }
+
+            // 3. Handle benefits
+            if (benefits != null && !benefits.isEmpty()) {
+                employee.setBenefits(benefits);
+            }
+
+            // 4. Set employee name from first and last name
+            employee.setEmployeeName(employee.getFirstName() + " " + employee.getLastName());
+
+            // 5. Set email (use personal email if work email not provided)
+            if (employee.getEmail() == null || employee.getEmail().isEmpty()) {
+                employee.setEmail(employee.getPersonalEmail());
+            }
+
+            // 6. Set default onboarding status
+            employee.setOnboardingStatus("NOT_STARTED");
+            employee.setCredentialsCreated(false);
+            employee.setActive(true);
+            employee.setStatus("Active");
+
+            // 7. Save employee
+            Employee savedEmployee = employeeService.saveEmployee(employee);
+
+            // 8. Set success message
+            ra.addFlashAttribute("showSuccessPopup", true);
+            ra.addFlashAttribute("employeeId", savedEmployee.getEmployeeId());
+            ra.addFlashAttribute("employeeName", savedEmployee.getEmployeeName());
+            ra.addFlashAttribute("message", "Employee added successfully!");
+
+            logger.info("✅ Employee saved successfully: {} (ID: {})",
+                    savedEmployee.getEmployeeName(), savedEmployee.getEmployeeId());
+
+            return "redirect:/dashboard/hr/add-employee";
+
+        } catch (Exception e) {
+            logger.error("❌ Error saving employee: {}", e.getMessage(), e);
+            ra.addFlashAttribute("error", "Failed to save employee: " + e.getMessage());
+            return "redirect:/dashboard/hr/add-employee";
+        }
     }
 
     /* ========== APPLICATIONS ========== */
@@ -175,7 +269,8 @@ public class HrDashboardController {
         model.addAttribute("isSuperAdmin", "SUPER_ADMIN".equals(session.getAttribute("userRole")));
         model.addAttribute("offerCount", offerService.getOfferCount());
 
-        return "forward:/dashboard/add-employee";
+        // CHANGE THIS: Return the template directly instead of forwarding
+        return "addemployee"; // This will render templates/addemployee.html
     }
 
     @GetMapping("/employees")
