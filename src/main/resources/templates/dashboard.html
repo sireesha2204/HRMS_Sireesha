@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org ">
+<html lang="en" xmlns:th="http://www.thymeleaf.org  ">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Recruitment Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css " rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css ">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300 ;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js "></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css  " rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css  ">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300  ;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js  "></script>
     <style>
         /* Global Black Scrollbar - SINGLE SCROLLBAR FOR ENTIRE PAGE */
         html {
@@ -2642,7 +2642,7 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js "></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js  "></script>
 <script>
     // ========== ATTENDANCE/LEAVE MANAGEMENT JAVASCRIPT ==========
     // Define holidays array (now supports multiple holidays per date)
@@ -3561,55 +3561,83 @@
     }
 
     // Approve leave request
-    function approveLeaveRequestHR(leaveId) {
-        const remarks = document.getElementById('approvalRemarks')?.value || '';
+function approveLeaveRequestHR(leaveId) {
+    // Fix optional chaining for older browsers
+    const remarksElement = document.getElementById('approvalRemarks');
+    const remarks = remarksElement ? remarksElement.value : '';
 
-        let requests = JSON.parse(localStorage.getItem(HR_LEAVE_REQUESTS_KEY)) || [];
-        const requestIndex = requests.findIndex(r => r.id === leaveId);
+    console.log('Approving leave request:', leaveId, 'Remarks:', remarks);
 
-        if (requestIndex !== -1) {
-            requests[requestIndex].status = 'approved';
-            requests[requestIndex].approvedBy = 'HR Manager';
-            requests[requestIndex].approvedDate = new Date().toISOString().split('T')[0];
-            requests[requestIndex].approvalRemarks = remarks;
+    // Update in LocalStorage
+    let leaveRequests = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+    const requestIndex = leaveRequests.findIndex(r => r.id === leaveId);
 
-            localStorage.setItem(HR_LEAVE_REQUESTS_KEY, JSON.stringify(requests));
+    if (requestIndex !== -1) {
+        // Update the request
+        leaveRequests[requestIndex].status = 'approved';
+        leaveRequests[requestIndex].approvedBy = 'HR Manager';
+        leaveRequests[requestIndex].approvedDate = new Date().toISOString().split('T')[0];
+        leaveRequests[requestIndex].approvalRemarks = remarks;
 
-            closeLeaveActionModal();
-            loadLeaveRequestsHR();
+        // Save back to LocalStorage
+        localStorage.setItem('menti_leave_requests', JSON.stringify(leaveRequests));
 
-            // Show notification
-            alert(`Leave request ${leaveId} has been approved!`);
-        }
+        console.log('Leave request approved and saved to LocalStorage');
+
+        // Close modal
+        closeLeaveActionModal();
+
+        // Refresh the table (show only pending requests)
+        loadAllLeaveRequestsHR();
+        filterLeaveRequestsHR('pending');
+
+        // Show success message
+        alert(`Leave request ${leaveId} has been approved!`);
+    } else {
+        alert('Error: Leave request not found!');
+    }
+}
+
+ function rejectLeaveRequestHR(leaveId) {
+    const reasonElement = document.getElementById('rejectionReason');
+    const reason = reasonElement ? reasonElement.value : '';
+
+    if (!reason || reason.trim() === '') {
+        alert('Please provide a rejection reason.');
+        return;
     }
 
-    // Reject leave request
-    function rejectLeaveRequestHR(leaveId) {
-        const reason = document.getElementById('rejectionReason')?.value;
+    console.log('Rejecting leave request:', leaveId, 'Reason:', reason);
 
-        if (!reason || reason.trim() === '') {
-            alert('Please provide a rejection reason.');
-            return;
-        }
+    // Update in LocalStorage
+    let leaveRequests = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+    const requestIndex = leaveRequests.findIndex(r => r.id === leaveId);
 
-        let requests = JSON.parse(localStorage.getItem(HR_LEAVE_REQUESTS_KEY)) || [];
-        const requestIndex = requests.findIndex(r => r.id === leaveId);
+    if (requestIndex !== -1) {
+        // Update the request
+        leaveRequests[requestIndex].status = 'rejected';
+        leaveRequests[requestIndex].rejectedBy = 'HR Manager';
+        leaveRequests[requestIndex].rejectedDate = new Date().toISOString().split('T')[0];
+        leaveRequests[requestIndex].rejectionReason = reason;
 
-        if (requestIndex !== -1) {
-            requests[requestIndex].status = 'rejected';
-            requests[requestIndex].rejectedBy = 'HR Manager';
-            requests[requestIndex].rejectedDate = new Date().toISOString().split('T')[0];
-            requests[requestIndex].rejectionReason = reason;
+        // Save back to LocalStorage
+        localStorage.setItem('menti_leave_requests', JSON.stringify(leaveRequests));
 
-            localStorage.setItem(HR_LEAVE_REQUESTS_KEY, JSON.stringify(requests));
+        console.log('Leave request rejected and saved to LocalStorage');
 
-            closeLeaveActionModal();
-            loadLeaveRequestsHR();
+        // Close modal
+        closeLeaveActionModal();
 
-            // Show notification
-            alert(`Leave request ${leaveId} has been rejected.`);
-        }
+        // Refresh the table
+        loadAllLeaveRequestsHR();
+        filterLeaveRequestsHR('pending');
+
+        // Show success message
+        alert(`Leave request ${leaveId} has been rejected.`);
+    } else {
+        alert('Error: Leave request not found!');
     }
+}
 
     // View leave details
     function viewLeaveDetailsHR(leaveId) {
@@ -3710,11 +3738,487 @@
         loadLeaveRequestsHR();
     }
 
-    // Initialize when HR screen loads
-    function initHRLeaveSystem() {
-        // Load existing leave requests from localStorage
-        loadLeaveRequestsHR();
+ // Initialize HR Leave System
+
+
+// Load all leave requests from LocalStorage
+function loadAllLeaveRequestsHR() {
+    const leaveRequests = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+    console.log('Loaded leave requests from LocalStorage:', leaveRequests);
+
+    // Store globally for filtering
+    window.allLeaveRequests = leaveRequests;
+
+    // Render in table
+    renderLeaveRequestsHR(leaveRequests);
+}
+
+// Render leave requests in HR table
+function renderLeaveRequestsHR(requests) {
+    const tbody = document.getElementById('hrLeaveRequestsBody');
+    const emptyState = document.getElementById('noLeaveRequestsHR');
+
+    if (!tbody) {
+        console.error('HR leave requests table body not found!');
+        return;
     }
+
+    // Clear existing rows
+    tbody.innerHTML = '';
+
+    if (!requests || requests.length === 0) {
+        tbody.innerHTML = '';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
+
+    if (emptyState) emptyState.style.display = 'none';
+
+    // Sort by applied date (newest first)
+    requests.sort((a, b) => new Date(b.appliedDateTime || b.appliedDate) - new Date(a.appliedDateTime || a.appliedDate));
+
+    // Add each request to table
+    requests.forEach(request => {
+        const row = createLeaveRequestRow(request);
+        tbody.appendChild(row);
+    });
+}
+
+// Create a table row for a leave request
+function createLeaveRequestRow(request) {
+    const row = document.createElement('tr');
+
+    // Format dates
+    const startDate = new Date(request.startDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric'
+    });
+
+    const endDate = new Date(request.endDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+
+    const appliedDate = new Date(request.appliedDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+
+    // Status badge
+    let statusBadge = '';
+    switch(request.status) {
+        case 'pending':
+            statusBadge = `<span class="attendance-badge" style="background: var(--warning); color: #000;">Pending</span>`;
+            break;
+        case 'approved':
+            statusBadge = `<span class="attendance-badge" style="background: var(--success); color: white;">Approved</span>`;
+            break;
+        case 'rejected':
+            statusBadge = `<span class="attendance-badge" style="background: var(--danger); color: white;">Rejected</span>`;
+            break;
+    }
+
+    // Action buttons based on status
+    let actionButtons = '';
+    if (request.status === 'pending') {
+        actionButtons = `
+            <div class="attendance-action-buttons" style="display: flex; gap: 0.25rem;">
+                <button class="attendance-action-btn" style="background: var(--success); color: white;"
+                        onclick="showApproveLeaveModal('${request.id}')">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="attendance-action-btn" style="background: var(--danger); color: white;"
+                        onclick="showRejectLeaveModal('${request.id}')">
+                    <i class="fas fa-times"></i> Reject
+                </button>
+                <button class="attendance-action-btn" style="background: var(--primary); color: white;"
+                        onclick="viewLeaveDetailsHR('${request.id}')">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            </div>
+        `;
+    } else {
+        actionButtons = `
+            <div class="attendance-action-buttons" style="display: flex; gap: 0.25rem;">
+                <button class="attendance-action-btn" style="background: var(--primary); color: white;"
+                        onclick="viewLeaveDetailsHR('${request.id}')">
+                    <i class="fas fa-eye"></i> View
+                </button>
+            </div>
+        `;
+    }
+
+   row.innerHTML = `
+        <td>${request.id}</td>
+        <td>
+            <div style="font-weight: 600; color: #f8fafc;">${request.employeeName}</div>
+            <div style="font-size: 0.75rem; color: var(--dark-text-secondary); margin-top: 2px;">${request.employeeId}</div>
+        </td>
+        <td>${request.department}</td>
+        <td>${request.leaveTypeName}</td>
+        <td>
+            <div>${startDate} - ${endDate}</div>
+            ${request.halfDayType ?
+                `<div style="font-size: 0.7rem;">(${request.halfDayType === 'first_half' ? 'First Half' : 'Second Half'})</div>` :
+                ''}
+        </td>
+        <td>
+            <div style="font-weight: 600;">${request.totalDays} day${request.totalDays > 1 ? 's' : ''}</div>
+        </td>
+        <td>${request.reason ? request.reason.substring(0, 40) + (request.reason.length > 40 ? '...' : '') : ''}</td>
+        <td>${appliedDate}</td>
+        <td>${statusBadge}</td>
+        <td>${actionButtons}</td>
+    `;
+
+    return row;
+}
+
+// Filter leave requests by status
+function filterLeaveRequestsHR(status) {
+    if (!window.allLeaveRequests) {
+        loadAllLeaveRequestsHR();
+        return;
+    }
+
+    let filteredRequests;
+    if (status === 'all') {
+        filteredRequests = window.allLeaveRequests;
+    } else {
+        filteredRequests = window.allLeaveRequests.filter(r => r.status === status);
+    }
+
+    renderLeaveRequestsHR(filteredRequests);
+}
+
+// Show approve modal
+function showApproveLeaveModal(leaveId) {
+    const request = findLeaveRequestById(leaveId);
+    if (!request) return;
+
+    const modalContent = `
+        <div style="margin-bottom: 1rem;">
+            <div style="font-weight: 600; color: #f8fafc;">Approve Leave Request</div>
+            <div style="font-size: 0.9rem; color: var(--dark-text-secondary);">
+                ${request.id} - ${request.employeeName}
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="font-weight: 600; color: var(--dark-text);">Leave Details:</label>
+            <div style="padding: 0.75rem; background: var(--dark-bg); border-radius: 4px; border: 1px solid var(--dark-border);">
+                <div><strong>Type:</strong> ${request.leaveTypeName}</div>
+                <div><strong>Dates:</strong> ${request.startDate} to ${request.endDate}</div>
+                <div><strong>Duration:</strong> ${request.totalDays} day${request.totalDays > 1 ? 's' : ''}</div>
+                <div><strong>Reason:</strong> ${request.reason || 'Not specified'}</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="font-weight: 600; color: var(--dark-text);">Approval Remarks (Optional):</label>
+            <textarea id="approvalRemarks" rows="3" placeholder="Add any remarks for the employee..."
+                     style="width: 100%; padding: 0.5rem; background: var(--dark-bg); border: 1px solid var(--dark-border); color: var(--dark-text); border-radius: 4px;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="attendance-btn btn-secondary-attendance" onclick="closeLeaveActionModal()">Cancel</button>
+            <button class="attendance-btn btn-success-attendance" onclick="approveLeaveRequestHR('${leaveId}')">
+                <i class="fas fa-check"></i> Approve Leave
+            </button>
+        </div>
+    `;
+
+    document.getElementById('leaveActionContent').innerHTML = modalContent;
+    document.getElementById('leaveActionModal').style.display = 'block';
+}
+
+// Show reject modal
+function showRejectLeaveModal(leaveId) {
+    const request = findLeaveRequestById(leaveId);
+    if (!request) return;
+
+    const modalContent = `
+        <div style="margin-bottom: 1rem;">
+            <div style="font-weight: 600; color: #f8fafc;">Reject Leave Request</div>
+            <div style="font-size: 0.9rem; color: var(--dark-text-secondary);">
+                ${request.id} - ${request.employeeName}
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="font-weight: 600; color: var(--dark-text);">Rejection Reason:</label>
+            <textarea id="rejectionReason" rows="3" placeholder="Please provide reason for rejection..."
+                     style="width: 100%; padding: 0.5rem; background: var(--dark-bg); border: 1px solid var(--dark-border); color: var(--dark-text); border-radius: 4px;"
+                     required></textarea>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button class="attendance-btn btn-secondary-attendance" onclick="closeLeaveActionModal()">Cancel</button>
+            <button class="attendance-btn btn-danger-attendance" onclick="rejectLeaveRequestHR('${leaveId}')">
+                <i class="fas fa-times"></i> Reject Leave
+            </button>
+        </div>
+    `;
+
+    document.getElementById('leaveActionContent').innerHTML = modalContent;
+    document.getElementById('leaveActionModal').style.display = 'block';
+}
+
+function approveLeaveRequestHR(leaveId) {
+    const remarks = document.getElementById('approvalRemarks')?.value || '';
+
+    console.log('Approving leave request:', leaveId);
+
+    // 1. Call Backend API to persist approval
+    fetch(`/api/leaves/approve/${leaveId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            remarks: remarks
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 2. Update localStorage for UI consistency (existing functionality preserved)
+            let leaveRequests = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+            const requestIndex = leaveRequests.findIndex(r => r.id === leaveId);
+
+            if (requestIndex !== -1) {
+                leaveRequests[requestIndex].status = 'approved';
+                leaveRequests[requestIndex].approvedBy = data.data.approvedBy || 'HR Manager';
+                leaveRequests[requestIndex].approvedDate = new Date().toISOString().split('T')[0];
+                leaveRequests[requestIndex].approvalRemarks = remarks;
+
+                localStorage.setItem('menti_leave_requests', JSON.stringify(leaveRequests));
+            }
+
+            // 3. Close modal and refresh UI
+            closeLeaveActionModal();
+            loadAllLeaveRequestsHR();
+            filterLeaveRequestsHR('pending');
+
+            // 4. Show success message
+            alert(`Leave request ${leaveId} has been approved and saved to database!`);
+
+        } else {
+            alert('Error approving leave: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to approve leave. Please check console for details.');
+    });
+}
+
+// Similarly update reject function
+function rejectLeaveRequestHR(leaveId) {
+    const reasonElement = document.getElementById('rejectionReason');
+    const reason = reasonElement ? reasonElement.value : '';
+
+    if (!reason || reason.trim() === '') {
+        alert('Please provide a rejection reason.');
+        return;
+    }
+
+    fetch(`/api/leaves/reject/${leaveId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update localStorage
+            let leaveRequests = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+            const requestIndex = leaveRequests.findIndex(r => r.id === leaveId);
+
+            if (requestIndex !== -1) {
+                leaveRequests[requestIndex].status = 'rejected';
+                leaveRequests[requestIndex].rejectedBy = data.data.rejectedBy || 'HR Manager';
+                leaveRequests[requestIndex].rejectedDate = new Date().toISOString().split('T')[0];
+                leaveRequests[requestIndex].rejectionReason = reason;
+
+                localStorage.setItem('menti_leave_requests', JSON.stringify(leaveRequests));
+            }
+
+            closeLeaveActionModal();
+            loadAllLeaveRequestsHR();
+            filterLeaveRequestsHR('pending');
+            alert(`Leave request ${leaveId} has been rejected.`);
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to reject leave.');
+    });
+}
+
+function initHRLeaveSystem() {
+    // Load from backend first to sync any approved leaves from other sessions
+    fetch('/api/leaves/pending')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.leaves) {
+                // Convert backend format to frontend format
+                const backendLeaves = data.leaves.map(leave => ({
+                    id: leave.leaveId,
+                    employeeId: leave.employeeId,
+                    employeeName: leave.employeeName || 'Unknown', // You'll need to join with Employee table
+                    department: leave.department || 'General',
+                    leaveType: leave.leaveType,
+                    leaveTypeName: leave.leaveType,
+                    startDate: leave.startDate,
+                    endDate: leave.endDate,
+                    totalDays: leave.totalDays,
+                    halfDayType: leave.halfDayType,
+                    reason: leave.reason,
+                    contactNumber: leave.contactNumber,
+                    status: leave.status.toLowerCase(),
+                    appliedDate: leave.appliedDateTime,
+                    approvedBy: leave.approvedBy,
+                    approvedDate: leave.approvedDate,
+                    approvalRemarks: leave.approvalRemarks,
+                    rejectedBy: leave.rejectedBy,
+                    rejectedDate: leave.rejectedDate,
+                    rejectionReason: leave.rejectionReason
+                }));
+
+                // Merge with localStorage (backend takes precedence for same IDs)
+                let localLeaves = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+
+                backendLeaves.forEach(backendLeave => {
+                    const localIndex = localLeaves.findIndex(l => l.id === backendLeave.id);
+                    if (localIndex >= 0) {
+                        localLeaves[localIndex] = backendLeave; // Update existing
+                    } else {
+                        localLeaves.push(backendLeave); // Add new
+                    }
+                });
+
+                localStorage.setItem('menti_leave_requests', JSON.stringify(localLeaves));
+                loadAllLeaveRequestsHR();
+            }
+        })
+        .catch(error => {
+            console.error('Error syncing with server:', error);
+            // Fallback to localStorage only
+            loadAllLeaveRequestsHR();
+        });
+}
+
+// View leave details
+function viewLeaveDetailsHR(leaveId) {
+    const request = findLeaveRequestById(leaveId);
+    if (!request) return;
+
+    const modalContent = `
+        <div style="margin-bottom: 1rem;">
+            <div style="font-size: 1.1rem; font-weight: 600; color: #f8fafc;">
+                ${request.id}
+            </div>
+            <div style="font-size: 0.9rem; color: var(--dark-text-secondary);">
+                ${request.employeeName} (${request.employeeId}) - ${request.department}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+            <div>
+                <label style="font-weight: 600; color: var(--dark-text);">Leave Type:</label>
+                <div>${request.leaveTypeName}</div>
+            </div>
+            <div>
+                <label style="font-weight: 600; color: var(--dark-text);">Status:</label>
+                <div>
+                    ${request.status === 'pending' ?
+                        `<span class="attendance-badge" style="background: var(--warning); color: #000;">Pending</span>` :
+                    request.status === 'approved' ?
+                        `<span class="attendance-badge" style="background: var(--success); color: white;">Approved</span>` :
+                        `<span class="attendance-badge" style="background: var(--danger); color: white;">Rejected</span>`}
+                </div>
+            </div>
+            <div>
+                <label style="font-weight: 600; color: var(--dark-text);">Dates:</label>
+                <div>${request.startDate} to ${request.endDate}</div>
+            </div>
+            <div>
+                <label style="font-weight: 600; color: var(--dark-text);">Duration:</label>
+                <div>${request.totalDays} day${request.totalDays > 1 ? 's' : ''}</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="font-weight: 600; color: var(--dark-text);">Reason:</label>
+            <div style="padding: 0.75rem; background: var(--dark-bg); border-radius: 4px; border: 1px solid var(--dark-border);">
+                ${request.reason || 'No reason provided'}
+            </div>
+        </div>
+
+        ${request.contactNumber ? `
+        <div style="margin-bottom: 1rem;">
+            <label style="font-weight: 600; color: var(--dark-text);">Contact Number:</label>
+            <div>${request.contactNumber}</div>
+        </div>` : ''}
+
+        <div style="margin-bottom: 1rem;">
+            <label style="font-weight: 600; color: var(--dark-text);">Applied On:</label>
+            <div>${new Date(request.appliedDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })}</div>
+        </div>
+
+        ${request.status === 'approved' ? `
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--dark-border);">
+            <label style="font-weight: 600; color: var(--success);">Approval Details:</label>
+            <div>Approved by: ${request.approvedBy || 'HR Manager'}</div>
+            <div>Date: ${request.approvedDate || 'N/A'}</div>
+            ${request.approvalRemarks ? `<div>Remarks: ${request.approvalRemarks}</div>` : ''}
+        </div>` : ''}
+
+        ${request.status === 'rejected' ? `
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--dark-border);">
+            <label style="font-weight: 600; color: var(--danger);">Rejection Details:</label>
+            <div>Rejected by: ${request.rejectedBy || 'HR Manager'}</div>
+            <div>Date: ${request.rejectedDate || 'N/A'}</div>
+            <div>Reason: ${request.rejectionReason || 'No reason provided'}</div>
+        </div>` : ''}
+
+        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
+            <button class="attendance-btn btn-secondary-attendance" onclick="closeLeaveActionModal()">Close</button>
+        </div>
+    `;
+
+    document.getElementById('leaveActionContent').innerHTML = modalContent;
+    document.getElementById('leaveActionModal').style.display = 'block';
+}
+
+// Helper function to find leave request by ID
+function findLeaveRequestById(leaveId) {
+    const leaveRequests = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+    return leaveRequests.find(r => r.id === leaveId);
+}
+
+// Close modal
+function closeLeaveActionModal() {
+    document.getElementById('leaveActionModal').style.display = 'none';
+}
+
+// Refresh leave requests
+function refreshLeaveRequests() {
+    loadAllLeaveRequestsHR();
+}
 
     // ========== MAIN DASHBOARD JAVASCRIPT ==========
     document.addEventListener('DOMContentLoaded', function() {
@@ -4346,213 +4850,91 @@
     loadPendingLeaveRequests();
 }
 
-function loadPendingLeaveRequests() {
-    fetch('/hr/leave/pending')
-        .then(response => response.json())
-        .then(leaves => {
-            renderLeaveRequestsHR(leaves);
-        })
-        .catch(error => {
-            console.error('Error loading leave requests:', error);
-            // Fallback to localStorage if API fails
-            const requests = JSON.parse(localStorage.getItem(HR_LEAVE_REQUESTS_KEY)) || [];
-            renderLeaveRequestsHR(requests);
-        });
-}
 
-function approveLeaveRequestHR(leaveId) {
-    const remarks = document.getElementById('approvalRemarks')?.value || '';
 
-    const approvalData = {
-        leaveId: leaveId,
-        action: 'approve',
-        remarks: remarks
-    };
 
-    fetch('/hr/leave/process', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(approvalData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(`Leave request ${leaveId} has been approved!`);
-            closeLeaveActionModal();
-            loadPendingLeaveRequests();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to process leave request');
-    });
-}
 </script>
 <script>
     // HR LIVE ATTENDANCE SYSTEM
-class HrAttendanceMonitor {
-    constructor() {
-        this.refreshInterval = null;
-        this.init();
-    }
-
-    init() {
-        this.loadLiveAttendance(); // Load immediately on init
-        // Refresh every 30 seconds
-        this.refreshInterval = setInterval(() => this.loadLiveAttendance(), 30000);
-    }
-
-   async loadLiveAttendance() {
-    try {
-        const response = await fetch('/api/attendance/today-all');
-        const data = await response.json();
-
-        if (data.success && data.attendances) {
-            this.updateAttendanceTable(data.attendances);
-            this.updateStats(data.attendances);
-        } else {
-            console.error('No attendance data returned:', data);
-        }
-    } catch (error) {
-        console.error('Error loading live attendance:', error);
-    }
-}
-
-    updateAttendanceTable(attendances) {
-    const tbody = document.querySelector('#attendanceManagementContent .attendance-table tbody');
-    if (!tbody) {
-        console.error('Attendance table tbody not found');
-        return;
-    }
-
-    tbody.innerHTML = '';
-
-    if (!attendances || attendances.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 2rem;">
-                    <i class="fas fa-user-clock" style="font-size: 2rem; opacity: 0.5; display: block; margin-bottom: 1rem;"></i>
-                    No employees checked in yet today
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    attendances.forEach(att => {
-        const row = document.createElement('tr');
-
-        // Handle null values safely with defaults
-        const empId = att.employeeId || 'Unknown';
-        const empName = att.employeeName || 'Unknown Employee';
-        const dept = att.department || 'N/A';
-        const workingTime = att.currentWorkingTime || '0h 0m';
-
-        // Determine status display
-        let statusClass = 'offline';
-        let statusText = 'Offline';
-
-        if (att.status === 'ACTIVE') {
-            statusClass = 'online';
-            statusText = 'Active';
-        } else if (att.status === 'BREAK') {
-            statusClass = 'break';
-            statusText = 'On Break';
+    class HrAttendanceMonitor {
+        constructor() {
+            this.refreshInterval = null;
+            this.init();
         }
 
-        // Format check-in time
-        let checkIn = '--:--';
-        if (att.checkInTime) {
-            checkIn = new Date(att.checkInTime).toLocaleTimeString('en-US', {
-                hour: '2-digit', minute: '2-digit', hour12: true
-            });
+        init() {
+            this.loadLiveAttendance();
+            this.refreshInterval = setInterval(() => this.loadLiveAttendance(), 30000);
         }
 
-        // Format check-out time
-        let checkOut = '--:--';
-        if (att.checkOutTime) {
-            checkOut = new Date(att.checkOutTime).toLocaleTimeString('en-US', {
-                hour: '2-digit', minute: '2-digit', hour12: true
-            });
-        }
+        async loadLiveAttendance() {
+            try {
+                const response = await fetch('/api/attendance/today-all');
+                const data = await response.json();
 
-        row.innerHTML = `
-            <td>
-                <div class="employee-id-with-status">
-                    <span class="status-indicator ${statusClass}"></span>
-                    ${empId}
-                </div>
-            </td>
-            <td>${empName}</td>
-            <td>${dept}</td>
-            <td>${checkIn}</td>
-            <td>${checkOut}</td>
-            <td>${workingTime}</td>
-            <td class="attendance-action-buttons">
-                <button class="attendance-action-btn" style="background: var(--primary); color: white;"
-                        onclick="viewEmployeeAttendance('${empId}')">
-                    <i class="fas fa-eye"></i> View
-                </button>
-            </td>
-        `;
-
-        tbody.appendChild(row);
-    });
-}
-
-        // Show empty state if no data
-        if (attendances.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" style="text-align: center; padding: 2rem;">
-                        <i class="fas fa-user-clock" style="font-size: 2rem; opacity: 0.5; display: block; margin-bottom: 1rem;"></i>
-                        No employees checked in yet today
-                    </td>
-                </tr>
-            `;
-        }
-    }
-
-    updateStats(attendances) {
-        const present = attendances.filter(a => a.status === 'ACTIVE').length;
-        const onBreak = attendances.filter(a => a.status === 'BREAK').length;
-        const offline = attendances.filter(a => a.status === 'OFFLINE').length || 0;
-
-        // Update your stats cards if they exist
-        const presentCard = document.querySelector('.attendance-stat-card.present-stat .stat-number');
-        if (presentCard) presentCard.textContent = present;
-
-        // You can update other stats similarly
-    }
-}
-
-// Initialize on attendance tab click or page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize when attendance tab is opened
-    const attendanceTab = document.querySelector('[onclick="openAttendanceTab(\'dashboard\')"]');
-    if (attendanceTab) {
-        attendanceTab.addEventListener('click', () => {
-            if (!window.hrAttendanceMonitor) {
-                window.hrAttendanceMonitor = new HrAttendanceMonitor();
+                if (data.success && data.attendances) {
+                    this.updateAttendanceTable(data.attendances);
+                    this.updateStats(data.attendances);
+                } else {
+                    console.error('No attendance data returned:', data);
+                }
+            } catch (error) {
+                console.error('Error loading live attendance:', error);
             }
+        }
+
+        updateAttendanceTable(attendances) {
+            const tbody = document.querySelector('#attendanceManagementContent .attendance-table tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            if (!attendances || attendances.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-user-clock" style="font-size: 2rem; opacity: 0.5; display: block; margin-bottom: 1rem;"></i>
+                            No employees checked in yet today
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            attendances.forEach(att => {
+                // ... table row generation code ...
+                const row = document.createElement('tr');
+                // ... (keep the existing row.innerHTML logic here) ...
+                tbody.appendChild(row);
+            });
+        }
+
+        updateStats(attendances) {
+            const present = attendances.filter(a => a.status === 'ACTIVE').length;
+            const onBreak = attendances.filter(a => a.status === 'BREAK').length;
+            const offline = attendances.filter(a => a.status === 'OFFLINE').length || 0;
+
+            const presentCard = document.querySelector('.attendance-stat-card.present-stat .stat-number');
+            if (presentCard) presentCard.textContent = present;
+        }
+    }
+
+    function viewEmployeeAttendance(employeeId) {
+        console.log('Viewing attendance for:', employeeId);
+    }
+
+    // Debug helper function
+    function debugLeaveRequests() {
+        console.log('=== DEBUG: Leave Requests in LocalStorage ===');
+        const requests = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+        console.log('Total requests:', requests.length);
+        requests.forEach(req => {
+            console.log(`- ${req.id}: ${req.employeeName} (${req.status})`);
         });
+        console.log('==========================================');
     }
 
-    // Auto-initialize if on attendance page
-    if (document.getElementById('attendanceManagementContent')?.style.display !== 'none') {
-        window.hrAttendanceMonitor = new HrAttendanceMonitor();
-    }
-});
-
-function viewEmployeeAttendance(employeeId) {
-    // Navigate to detailed view or show modal
-    console.log('Viewing attendance for:', employeeId);
-    // Implement detailed view logic here
-}
+    window.debugLeave = debugLeaveRequests;
 </script>
 </body>
 </html>

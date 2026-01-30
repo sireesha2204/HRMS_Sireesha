@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org  ">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard – Menti's IT</title>
 
     <!-- ===== EXTERNAL LIBS ===== -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css  " rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css  ">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300  ;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- ===== CORE STYLES ===== -->
     <style>
@@ -2797,6 +2797,15 @@
     </style>
 </head>
 <body>
+
+<!-- Add these hidden fields to store employee data for JavaScript -->
+<input type="hidden" id="currentEmployeeId" th:value="${employee.employeeId}">
+<input type="hidden" id="currentEmployeeFirstName" th:value="${employee.firstName}">
+<input type="hidden" id="currentEmployeeLastName" th:value="${employee.lastName}">
+<input type="hidden" id="currentEmployeeDepartment" th:value="${employee.department}">
+
+
+
 <!-- ================= TOP NAV ================= -->
 <nav class="top-nav">
     <a href="#" class="nav-brand">Menti's IT Solutions</a>
@@ -2984,6 +2993,9 @@
                         </div>
                         <div class="info-grid">
                             <div class="info-row">
+                                <!-- Add this near the top of the body or in the profile section -->
+                                <input type="hidden" id="employeeIdData" th:value="${employee.employeeId}" />
+
                                 <span class="info-label">Employee ID</span>
                                 <span class="info-value" th:text="${employee.employeeId != null ? employee.employeeId : '-'}">-</span>
                             </div>
@@ -3834,36 +3846,13 @@
                                 <th>Remarks</th>
                             </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="leave-history-body">
+                            <!-- Will be populated by JavaScript -->
                             <tr>
-                                <td>LV-2026-0010</td>
-                                <td>Earned Leave</td>
-                                <td>2026-01-05</td>
-                                <td>2026-01-07</td>
-                                <td>3 days</td>
-                                <td><span class="status-badge approved">Approved</span></td>
-                                <td>Mike Wilson</td>
-                                <td>Family vacation approved</td>
-                            </tr>
-                            <tr>
-                                <td>LV-2025-0008</td>
-                                <td>Casual Leave</td>
-                                <td>2025-12-28</td>
-                                <td>2025-12-28</td>
-                                <td>1 day</td>
-                                <td><span class="status-badge rejected">Rejected</span></td>
-                                <td>Sarah Johnson</td>
-                                <td>Project deadline</td>
-                            </tr>
-                            <tr>
-                                <td>LV-2025-0005</td>
-                                <td>Sick Leave</td>
-                                <td>2025-12-15</td>
-                                <td>2025-12-16</td>
-                                <td>2 days</td>
-                                <td><span class="status-badge approved">Approved</span></td>
-                                <td>Mike Wilson</td>
-                                <td>Medical certificate submitted</td>
+                                <td colspan="8" style="text-align: center; padding: 2rem; color: var(--dark-text-secondary);">
+                                    <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i>
+                                    Loading leave history...
+                                </td>
                             </tr>
                             </tbody>
                         </table>
@@ -4176,2580 +4165,2731 @@
 </div>
 
 <!-- ================= JAVASCRIPT ================= -->
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.2/dist/sockjs.min.js  "></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js  "></script>
 <script>
-    // ========== WORKING HOURS TRACKER ==========
-   // ========== WORKING HOURS TRACKER (FIXED VERSION) ==========
+// ================= WORKING HOURS TRACKER (FIXED VERSION) =================
 class WorkingHoursTracker {
-    constructor() {
-        this.totalMinutes = 0;
-        this.targetMinutes = 480; // 8 hours
-        this.isClockedIn = false;
-        this.checkInTime = null;
-        this.load();
-        this.updateDisplay();
-    }
-
-    load() {
-        const today = new Date().toDateString();
-        const raw = localStorage.getItem('workingHoursToday');
-        if (raw) {
-            const data = JSON.parse(raw);
-            if (data.date === today) {
-                this.totalMinutes = data.minutes || 0;
-                this.isClockedIn = data.isClockedIn || false;
-                this.checkInTime = data.checkInTime ? new Date(data.checkInTime) : null;
-            }
-        }
-    }
-
-    save() {
-        localStorage.setItem('workingHoursToday', JSON.stringify({
-            date: new Date().toDateString(),
-            minutes: this.totalMinutes,
-            isClockedIn: this.isClockedIn,
-            checkInTime: this.checkInTime ? this.checkInTime.toISOString() : null
-        }));
-    }
-
-    // MISSING METHOD - ADD THIS
-    setClockedIn(status) {
-        this.isClockedIn = status;
-        if (status && !this.checkInTime) {
-            this.checkInTime = new Date();
-        } else if (!status) {
-            this.checkInTime = null;
-        }
-        this.save();
-    }
-
-    format(min) {
-        const h = Math.floor(min / 60);
-        const m = min % 60;
-        return `${h}h ${m}m`;
-    }
-
-    updateDisplay() {
-        const perc = Math.min((this.totalMinutes / this.targetMinutes) * 100, 100);
-        const timeStr = this.format(this.totalMinutes);
-        const hoursDisplay = document.getElementById('hoursDisplayTop');
-        const percentageText = document.getElementById('percentageTextTooltip');
-
-        if (hoursDisplay) hoursDisplay.textContent = timeStr;
-        if (percentageText) percentageText.textContent = Math.round(perc) + '%';
-    }
-
-    // Helper method to sync with attendance manager
-    syncWithAttendance(status, checkInTime) {
-        this.isClockedIn = (status === 'ACTIVE');
-        if (checkInTime) {
-            this.checkInTime = new Date(checkInTime);
-        }
-        this.save();
-    }
-}
-    const whTracker = new WorkingHoursTracker();
-
-    // ========== MAIN NAVIGATION ==========
-    let currentTab = 'dashboard';
-    document.querySelectorAll('.menu-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const target = item.getAttribute('data-tab');
-            if (!target) return;
-            currentTab = target;
-            document.getElementById('profileCardContainer').style.display = target === 'profile' ? 'block' : 'none';
-            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-            item.classList.add('active');
-            document.getElementById(target).classList.add('active');
-            document.getElementById('recentActivityCard').style.display = target === 'dashboard' ? 'block' : 'none';
-
-            // Initialize attendance tab if selected
-            if (target === 'attendance') {
-                initializeAttendanceTab();
-            }
-        });
-    });
-
-    document.querySelectorAll('.sub-nav-item').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const sub = btn.getAttribute('data-subtab');
-            if (!sub) return;
-            const container = btn.closest('.tab-pane');
-            container.querySelectorAll('.sub-nav-item').forEach(el => el.classList.remove('active'));
-            container.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
-            btn.classList.add('active');
-            container.querySelector('#' + sub).classList.add('active');
-        });
-    });
-
-    // ========== ATTENDANCE TAB NAVIGATION ==========
-    function openAttendanceTab(tabName) {
-        document.querySelectorAll('#attendance .tab-content').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        document.querySelectorAll('#attendance .tab').forEach(tab => {
-            tab.classList.remove('active');
-        });
-        document.getElementById(tabName).classList.add('active');
-        event.target.classList.add('active');
-
-        closeCalendarPopup();
-
-        if (tabName === 'timesheet') {
-            loadTimesheetData();
-        } else if (tabName === 'calendar') {
-            generateMainCalendar();
-            updateUpcomingHolidays();
-            updateLeaveStatistics();
-        }
-    }
-
-    // ========== INITIALIZE ATTENDANCE TAB ==========
-    function initializeAttendanceTab() {
-        // Set current date
-        const now = new Date();
-        const options = { month: 'long', day: 'numeric', year: 'numeric' };
-        document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options);
-
-        // Initialize timesheet
-        loadTimesheetData();
-
-        // Initialize calendar
-        generateMainCalendar();
-        updateUpcomingHolidays();
-        updateLeaveStatistics();
-
-        // Start live timer
-        startLiveTimer();
-    }
-
-    // ========== LIVE TIMER ==========
-    let startTime = new Date();
-    startTime.setHours(9, 0, 0, 0);
-
-    function startLiveTimer() {
-        updateTimer();
-        setInterval(updateTimer, 1000);
-    }
-
-    function updateTimer() {
-        const now = new Date();
-        const diff = now - startTime;
-
-        const hours = Math.floor(diff / 3600000);
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
-
-        // Ensure only positive numbers are displayed
-        const displayHours = Math.max(0, hours);
-        const displayMinutes = Math.max(0, minutes);
-        const displaySeconds = Math.max(0, seconds);
-
-        // Update all timers
-        document.getElementById('live-timer-large').textContent =
-            `${displayHours.toString().padStart(2, '0')}:${displayMinutes.toString().padStart(2, '0')}:${displaySeconds.toString().padStart(2, '0')}`;
-
-        // Update total hours display
-        const totalDisplayHours = Math.max(0, hours);
-        const totalDisplayMinutes = Math.max(0, minutes);
-
-        // Update in multiple places
-        document.getElementById('total-hours-small').textContent = `${totalDisplayHours}h ${totalDisplayMinutes}m`;
-
-        // Calculate overtime only if worked more than 8 hours
-        if (totalDisplayHours >= 8) {
-            const overtimeHours = totalDisplayHours - 8;
-            const overtimeMins = totalDisplayMinutes;
-            document.getElementById('overtime-small').textContent = `${overtimeHours}h ${overtimeMins}m`;
-            document.getElementById('overtime-small').style.color = 'var(--primary)';
-        } else {
-            document.getElementById('overtime-small').textContent = '0h 0m';
-            document.getElementById('overtime-small').style.color = 'var(--dark-text)';
-        }
-
-        // Update working hours tracker with positive values only
-        whTracker.totalMinutes = Math.max(0, totalDisplayHours * 60 + totalDisplayMinutes);
-        whTracker.updateDisplay();
-
-        // Update timesheet with positive values
-        const todayRow = document.querySelector('#timesheet-body tr:first-child');
-        if (todayRow) {
-            todayRow.cells[4].textContent = `${totalDisplayHours}h ${totalDisplayMinutes}m`;
-        }
-    }
-
-    // ========== UTILITY FUNCTIONS ==========
-    function takeBreak() {
-        alert('Break started. 30 minutes break time remaining.');
-    }
-
-    function logout() {
-        if (confirm('Are you sure you want to logout?')) {
-            alert('Logging out...');
-        }
-    }
-
-    // ========== TIMESHEET FUNCTIONS ==========
-    function loadTimesheetData() {
-        const timesheetBody = document.getElementById('timesheet-body');
-
-        const timesheetData = [
-            {
-                date: '2026-01-07',
-                day: 'Wednesday',
-                checkin: '09:00 AM',
-                checkout: '--:--',
-                totalHours: '7h 30m',
-                overtime: '0h 30m',
-                status: 'Present',
-                remarks: 'Working'
-            },
-            {
-                date: '2026-01-06',
-                day: 'Tuesday',
-                checkin: '09:15 AM',
-                checkout: '06:30 PM',
-                totalHours: '8h 45m',
-                overtime: '1h 15m',
-                status: 'Present',
-                remarks: 'Project Deadline'
-            },
-            {
-                date: '2026-01-05',
-                day: 'Monday',
-                checkin: '09:00 AM',
-                checkout: '05:45 PM',
-                totalHours: '8h 15m',
-                overtime: '0h 00m',
-                status: 'Early Out',
-                remarks: 'Doctor Appointment'
-            },
-            {
-                date: '2026-01-04',
-                day: 'Sunday',
-                checkin: '--:--',
-                checkout: '--:--',
-                totalHours: '0h 00m',
-                overtime: '0h 00m',
-                status: 'Weekend',
-                remarks: 'Weekly Off'
-            },
-            {
-                date: '2026-01-03',
-                day: 'Saturday',
-                checkin: '--:--',
-                checkout: '--:--',
-                totalHours: '0h 00m',
-                overtime: '0h 00m',
-                status: 'Weekend',
-                remarks: 'Weekly Off'
-            },
-            {
-                date: '2026-01-02',
-                day: 'Friday',
-                checkin: '09:00 AM',
-                checkout: '06:00 PM',
-                totalHours: '8h 00m',
-                overtime: '0h 00m',
-                status: 'Present',
-                remarks: 'Normal Day'
-            }
-        ];
-
-        timesheetBody.innerHTML = '';
-
-        timesheetData.forEach(entry => {
-            const row = document.createElement('tr');
-
-            let statusClass = 'present';
-            if (entry.status === 'Early Out' || entry.status === 'Late' || entry.status === 'Absent') {
-                statusClass = 'absent';
-            } else if (entry.status === 'Weekend') {
-                statusClass = 'holiday';
-            } else if (entry.status === 'Leave') {
-                statusClass = 'leave';
-            }
-
-            row.innerHTML = `
-                <td>${entry.date}</td>
-                <td>${entry.day}</td>
-                <td>${entry.checkin}</td>
-                <td>${entry.checkout}</td>
-                <td>${entry.totalHours}</td>
-                <td>${entry.overtime}</td>
-                <td><span class="status-badge ${statusClass}">${entry.status}</span></td>
-                <td>${entry.remarks}</td>
-            `;
-
-            timesheetBody.appendChild(row);
-        });
-    }
-
-    function exportTimesheet() {
-        const month = document.getElementById('timesheetMonth').options[document.getElementById('timesheetMonth').selectedIndex].text;
-        const year = document.getElementById('timesheetYear').value;
-        alert(`Exporting ${month} ${year} timesheet to Excel...`);
-    }
-
-    function printTimesheet() {
-        window.print();
-    }
-
-    // ========== CALENDAR POPUP FUNCTIONS ==========
-    function toggleCalendarPopup() {
-        const popup = document.getElementById('calendarPopup');
-        const overlay = document.getElementById('calendarOverlay');
-
-        if (popup.classList.contains('active')) {
-            closeCalendarPopup();
-        } else {
-            generatePopupCalendar();
-            updatePopupHolidays();
-            updatePopupLeaveStatistics();
-
-            popup.classList.add('active');
-            overlay.classList.add('active');
-        }
-    }
-
-    function closeCalendarPopup() {
-        document.getElementById('calendarPopup').classList.remove('active');
-        document.getElementById('calendarOverlay').classList.remove('active');
-    }
-
-    // ========== CALENDAR TAB FUNCTIONS ==========
-    let currentCalendarMonth = new Date().getMonth();
-    let currentCalendarYear = new Date().getFullYear();
-
-    // Define holidays (YYYY-MM-DD format)
-    const holidays = [
-        '2026-01-01', // New Year's Day
-        '2026-01-26', // Republic Day
-        '2026-03-29', // Good Friday
-        '2026-08-15', // Independence Day
-        '2026-10-02', // Gandhi Jayanti
-        '2026-12-25'  // Christmas
-    ];
-
-    // Define company-specific holidays
-    const companyHolidays = [
-        '2026-01-15', // Company Foundation Day
-        '2026-05-01', // Labour Day
-        '2026-10-31'  // Diwali
-    ];
-
-    // Sample attendance data for calendar
-    const calendarAttendanceData = {
-        '2026-01-01': { status: 'holiday', name: 'New Year' },
-        '2026-01-05': { status: 'present' },
-        '2026-01-06': { status: 'present' },
-        '2026-01-07': { status: 'present' },
-        '2026-01-08': { status: 'present' },
-        '2026-01-09': { status: 'present' },
-        '2026-01-13': { status: 'present' },
-        '2026-01-14': { status: 'present' },
-        '2026-01-15': { status: 'holiday', name: 'Company Foundation Day' },
-        '2026-01-19': { status: 'present' },
-        '2026-01-20': { status: 'present' },
-        '2026-01-21': { status: 'present' },
-        '2026-01-22': { status: 'present' },
-        '2026-01-23': { status: 'present' },
-        '2026-01-26': { status: 'holiday', name: 'Republic Day' },
-        '2026-01-27': { status: 'absent', reason: 'Unauthorized' },
-        '2026-01-28': { status: 'present' },
-        '2026-01-29': { status: 'present' },
-        '2026-01-30': { status: 'present' }
-    };
-
-    // User leave requests
-    const userLeaveRequests = {};
-
-    // Upcoming holidays for display
-    const upcomingHolidaysList = [
-        { date: '2026-01-26', name: 'Republic Day', type: 'National Holiday' },
-        { date: '2026-03-29', name: 'Good Friday', type: 'National Holiday' },
-        { date: '2026-05-01', name: 'Labour Day', type: 'Public Holiday' },
-        { date: '2026-08-15', name: 'Independence Day', type: 'National Holiday' },
-        { date: '2026-10-02', name: 'Gandhi Jayanti', type: 'National Holiday' },
-        { date: '2026-10-31', name: 'Diwali', type: 'Festival Holiday' },
-        { date: '2026-12-25', name: 'Christmas', type: 'Public Holiday' }
-    ];
-
-    // Employee leave statistics
-    const employeeLeaveStats = {
-        leavesTaken: 5,
-        totalLeaves: 15,
-        availableLeaves: 10
-    };
-
-    function updateLeaveStatistics() {
-        document.getElementById('leavesTaken').textContent = employeeLeaveStats.leavesTaken;
-        document.getElementById('totalLeaves').textContent = employeeLeaveStats.totalLeaves;
-        document.getElementById('availableLeaves').textContent = employeeLeaveStats.availableLeaves;
-    }
-
-    function generateMainCalendar() {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                          'July', 'August', 'September', 'October', 'November', 'December'];
-
-        // Update calendar title
-        document.getElementById('calendar-month-year').textContent =
-            `${monthNames[currentCalendarMonth]} ${currentCalendarYear}`;
-
-        const firstDay = new Date(currentCalendarYear, currentCalendarMonth, 1);
-        const lastDay = new Date(currentCalendarYear, currentCalendarMonth + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startingDay = firstDay.getDay();
-
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-
-        const calendarGrid = document.getElementById('main-calendar');
-
-        // Clear existing content
-        calendarGrid.innerHTML = '';
-
-        // Day headers
-        const dayHeaders = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        dayHeaders.forEach((day, index) => {
-            const dayHeader = document.createElement('div');
-            dayHeader.className = 'calendar-day-header';
-            if (index === 0 || index === 6) {
-                dayHeader.classList.add('weekend');
-            }
-            dayHeader.textContent = day.substring(0, 3);
-            calendarGrid.appendChild(dayHeader);
-        });
-
-        // Empty cells for days before the first day of the month
-        for (let i = 0; i < startingDay; i++) {
-            const emptyDay = document.createElement('div');
-            emptyDay.className = 'calendar-day-main';
-            emptyDay.style.background = 'transparent';
-            emptyDay.style.border = 'none';
-            calendarGrid.appendChild(emptyDay);
-        }
-
-        // Days of the month
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${currentCalendarYear}-${String(currentCalendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dateObj = new Date(currentCalendarYear, currentCalendarMonth, day);
-            const dayOfWeek = dateObj.getDay();
-
-            // Check if it's a holiday
-            const isHoliday = holidays.includes(dateStr) || companyHolidays.includes(dateStr);
-            const isSunday = dayOfWeek === 0;
-            const isSaturday = dayOfWeek === 6;
-            const isPast = dateObj < new Date(new Date().setHours(0,0,0,0));
-            const isToday = dateStr === todayStr;
-
-            // Get attendance status
-            let attendance = calendarAttendanceData[dateStr];
-
-            // Check if user has applied for leave on this date
-            if (userLeaveRequests[dateStr]) {
-                attendance = {
-                    status: 'leave',
-                    reason: userLeaveRequests[dateStr].reason,
-                    statusText: userLeaveRequests[dateStr].status === 'approved' ? 'Leave Approved' : 'Pending'
-                };
-            }
-
-            const dayElement = document.createElement('div');
-            dayElement.className = 'calendar-day-main';
-
-            // Add appropriate classes
-            if (isSunday || isSaturday) {
-                dayElement.classList.add('weekend');
-            }
-
-            if (isHoliday) {
-                dayElement.classList.add('holiday');
-            }
-
-            if (isPast && !isToday) {
-                dayElement.classList.add('past');
-            }
-
-            if (isToday) {
-                dayElement.classList.add('today');
-            }
-
-            // Add status classes based on attendance
-            if (attendance) {
-                if (attendance.status === 'present') {
-                    dayElement.classList.add('present-day');
-                } else if (attendance.status === 'absent') {
-                    dayElement.classList.add('absent-day');
-                } else if (attendance.status === 'leave') {
-                    dayElement.classList.add('leave-day');
-                } else if (attendance.status === 'holiday') {
-                    dayElement.classList.add('holiday');
-                }
-            } else if (!isSunday && !isSaturday && !isHoliday) {
-                dayElement.classList.add('working-day');
-            }
-
-            // Day number
-            const dayNumber = document.createElement('div');
-            dayNumber.className = 'calendar-day-number';
-            dayNumber.textContent = day;
-
-            // Add + button for future dates that are not weekends/holidays
-            if (!isPast && !isHoliday && !isSunday && !isSaturday && !userLeaveRequests[dateStr]) {
-                const addButton = document.createElement('button');
-                addButton.className = 'calendar-day-add';
-                addButton.innerHTML = '<i class="fas fa-plus"></i>';
-                addButton.title = 'Apply Leave for this date';
-                addButton.onclick = function(e) {
-                    e.stopPropagation();
-                    openLeaveFormForDate(dateStr);
-                };
-                dayNumber.appendChild(addButton);
-            }
-
-            dayElement.appendChild(dayNumber);
-
-            // Holiday name if applicable
-            if (isHoliday) {
-                let holidayName = '';
-                if (holidays.includes(dateStr)) {
-                    // Find holiday name
-                    if (dateStr === '2026-01-01') holidayName = 'New Year';
-                    else if (dateStr === '2026-01-26') holidayName = 'Republic Day';
-                    else if (dateStr === '2026-03-29') holidayName = 'Good Friday';
-                    else if (dateStr === '2026-08-15') holidayName = 'Independence Day';
-                    else if (dateStr === '2026-10-02') holidayName = 'Gandhi Jayanti';
-                    else if (dateStr === '2026-12-25') holidayName = 'Christmas';
-                } else if (companyHolidays.includes(dateStr)) {
-                    if (dateStr === '2026-01-15') holidayName = 'Company Day';
-                    else if (dateStr === '2026-05-01') holidayName = 'Labour Day';
-                    else if (dateStr === '2026-10-31') holidayName = 'Diwali';
-                }
-
-                if (holidayName) {
-                    const holidayElement = document.createElement('div');
-                    holidayElement.className = 'calendar-day-holiday-name';
-                    holidayElement.textContent = holidayName;
-                    dayElement.appendChild(holidayElement);
-                }
-            }
-
-            // Attendance status
-            if (attendance) {
-                const statusElement = document.createElement('div');
-                statusElement.className = `calendar-day-status ${attendance.status}`;
-
-                if (attendance.status === 'holiday') {
-                    statusElement.textContent = attendance.name || 'Holiday';
-                } else if (attendance.status === 'leave') {
-                    if (attendance.statusText) {
-                        statusElement.textContent = attendance.statusText;
-                    } else {
-                        statusElement.textContent = 'Leave';
-                    }
-                } else if (attendance.status === 'absent') {
-                    statusElement.textContent = 'Absent';
-                } else if (attendance.status === 'present') {
-                    statusElement.textContent = 'Present';
-                }
-
-                dayElement.appendChild(statusElement);
-            }
-
-            calendarGrid.appendChild(dayElement);
-        }
-    }
-
-    function openLeaveFormForDate(dateStr) {
-        // Set the date in the leave form
-        const date = new Date(dateStr);
-        const formattedDate = date.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-
-        // Open the leave form
-        openApplyLeavePopup();
-
-        // Reset form first
-        document.getElementById('applyLeaveForm').reset();
-        document.getElementById('leaveFileName').textContent = 'Click to upload file';
-
-        // Set the selected date
-        leaveSelectedDates = [dateStr];
-        currentLeaveDuration = 'full_day';
-
-        // Set leave duration to full day by default
-        document.getElementById('leaveDuration').value = 'full_day';
-
-        // Update the display
-        updateLeaveSummaryMainForm();
-
-        // Enable the submit button since we have a date selected
-        document.getElementById('submitLeaveBtn').disabled = false;
-
-        // Show leave summary
-        document.getElementById('leaveSummaryCompact').style.display = 'block';
-
-        // Update small calendar to show selected date
-        smallCalendarMonth = date.getMonth();
-        smallCalendarYear = date.getFullYear();
-        generateSmallCalendar();
-
-        // Show success message
-        showSuccessPopup(
-            'Date Selected!',
-            `You can now complete your leave application for ${formattedDate}. Please fill in the leave details and click "Apply for Leave".`
-        );
-    }
-
-    function updateUpcomingHolidays() {
-        const holidayList = document.getElementById('upcoming-holidays-list');
-        holidayList.innerHTML = '';
-
-        const today = new Date();
-
-        // Filter and sort upcoming holidays
-        const upcoming = upcomingHolidaysList
-            .filter(holiday => {
-                const holidayDate = new Date(holiday.date);
-                return holidayDate >= today;
-            })
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
-            .slice(0, 5);
-
-        if (upcoming.length === 0) {
-            holidayList.innerHTML = '<div style="text-align: center; color: var(--dark-text-secondary); font-size: 0.8rem; padding: 1rem;">No upcoming holidays</div>';
-            return;
-        }
-
-        upcoming.forEach(holiday => {
-            const holidayDate = new Date(holiday.date);
-            const today = new Date();
-            const diffTime = Math.abs(holidayDate - today);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            const holidayItem = document.createElement('div');
-            holidayItem.className = 'holiday-item-main';
-
-            const formattedDate = holidayDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-
-            holidayItem.innerHTML = `
-                <div class="holiday-date-main">${formattedDate}</div>
-                <div class="holiday-details-main">
-                    <div class="holiday-title-main">${holiday.name}</div>
-                    <div class="holiday-type-main">${holiday.type}</div>
-                </div>
-                <div class="days-away-main">${diffDays} day${diffDays !== 1 ? 's' : ''}</div>
-            `;
-
-            holidayList.appendChild(holidayItem);
-        });
-    }
-
-    function prevCalendarMonth() {
-        currentCalendarMonth--;
-        if (currentCalendarMonth < 0) {
-            currentCalendarMonth = 11;
-            currentCalendarYear--;
-        }
-        generateMainCalendar();
-    }
-
-    function nextCalendarMonth() {
-        currentCalendarMonth++;
-        if (currentCalendarMonth > 11) {
-            currentCalendarMonth = 0;
-            currentCalendarYear++;
-        }
-        generateMainCalendar();
-    }
-
-    function goToToday() {
-        const today = new Date();
-        currentCalendarMonth = today.getMonth();
-        currentCalendarYear = today.getFullYear();
-        generateMainCalendar();
-    }
-
-    // ========== CALENDAR POPUP FUNCTIONS ==========
-    let popupCalendarMonth = new Date().getMonth();
-    let popupCalendarYear = new Date().getFullYear();
-
-    function generatePopupCalendar() {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                          'July', 'August', 'September', 'October', 'November', 'December'];
-
-        // Update calendar title
-        document.getElementById('popup-calendar-month-year').textContent =
-            `${monthNames[popupCalendarMonth]} ${popupCalendarYear}`;
-
-        const firstDay = new Date(popupCalendarYear, popupCalendarMonth, 1);
-        const lastDay = new Date(popupCalendarYear, popupCalendarMonth + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startingDay = firstDay.getDay();
-
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-
-        const calendarGrid = document.getElementById('popup-calendar');
-
-        // Clear existing content
-        calendarGrid.innerHTML = '';
-
-        // Day headers
-        const dayHeaders = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        dayHeaders.forEach((day, index) => {
-            const dayHeader = document.createElement('div');
-            dayHeader.className = 'calendar-day-header';
-            if (index === 0 || index === 6) {
-                dayHeader.classList.add('weekend');
-            }
-            dayHeader.textContent = day.substring(0, 3);
-            calendarGrid.appendChild(dayHeader);
-        });
-
-        // Empty cells for days before the first day of the month
-        for (let i = 0; i < startingDay; i++) {
-            const emptyDay = document.createElement('div');
-            emptyDay.className = 'calendar-day-main';
-            emptyDay.style.background = 'transparent';
-            emptyDay.style.border = 'none';
-            calendarGrid.appendChild(emptyDay);
-        }
-
-        // Days of the month
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${popupCalendarYear}-${String(popupCalendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dateObj = new Date(popupCalendarYear, popupCalendarMonth, day);
-            const dayOfWeek = dateObj.getDay();
-
-            // Check if it's a holiday
-            const isHoliday = holidays.includes(dateStr) || companyHolidays.includes(dateStr);
-            const isSunday = dayOfWeek === 0;
-            const isSaturday = dayOfWeek === 6;
-            const isPast = dateObj < new Date(new Date().setHours(0,0,0,0));
-            const isToday = dateStr === todayStr;
-
-            // Get attendance status
-            let attendance = calendarAttendanceData[dateStr];
-
-            // Check if user has applied for leave on this date
-            if (userLeaveRequests[dateStr]) {
-                attendance = {
-                    status: 'leave',
-                    reason: userLeaveRequests[dateStr].reason,
-                    statusText: userLeaveRequests[dateStr].status === 'approved' ? 'Leave Approved' : 'Pending'
-                };
-            }
-
-            const dayElement = document.createElement('div');
-            dayElement.className = 'calendar-day-main';
-
-            // Add appropriate classes
-            if (isSunday || isSaturday) {
-                dayElement.classList.add('weekend');
-            }
-
-            if (isHoliday) {
-                dayElement.classList.add('holiday');
-            }
-
-            if (isPast && !isToday) {
-                dayElement.classList.add('past');
-            }
-
-            if (isToday) {
-                dayElement.classList.add('today');
-            }
-
-            // Add status classes based on attendance
-            if (attendance) {
-                if (attendance.status === 'present') {
-                    dayElement.classList.add('present-day');
-                } else if (attendance.status === 'absent') {
-                    dayElement.classList.add('absent-day');
-                } else if (attendance.status === 'leave') {
-                    dayElement.classList.add('leave-day');
-                } else if (attendance.status === 'holiday') {
-                    dayElement.classList.add('holiday');
-                }
-            } else if (!isSunday && !isSaturday && !isHoliday) {
-                dayElement.classList.add('working-day');
-            }
-
-            // Day number
-            const dayNumber = document.createElement('div');
-            dayNumber.className = 'calendar-day-number';
-            dayNumber.textContent = day;
-
-            // Add + button for future dates that are not weekends/holidays
-            if (!isPast && !isHoliday && !isSunday && !isSaturday && !userLeaveRequests[dateStr]) {
-                const addButton = document.createElement('button');
-                addButton.className = 'calendar-day-add';
-                addButton.innerHTML = '<i class="fas fa-plus"></i>';
-                addButton.title = 'Apply Leave for this date';
-                addButton.onclick = function(e) {
-                    e.stopPropagation();
-                    openLeaveFormForDate(dateStr);
-                    closeCalendarPopup();
-                };
-                dayNumber.appendChild(addButton);
-            }
-
-            dayElement.appendChild(dayNumber);
-
-            // Holiday name if applicable
-            if (isHoliday) {
-                let holidayName = '';
-                if (holidays.includes(dateStr)) {
-                    // Find holiday name
-                    if (dateStr === '2026-01-01') holidayName = 'New Year';
-                    else if (dateStr === '2026-01-26') holidayName = 'Republic Day';
-                    else if (dateStr === '2026-03-29') holidayName = 'Good Friday';
-                    else if (dateStr === '2026-08-15') holidayName = 'Independence Day';
-                    else if (dateStr === '2026-10-02') holidayName = 'Gandhi Jayanti';
-                    else if (dateStr === '2026-12-25') holidayName = 'Christmas';
-                } else if (companyHolidays.includes(dateStr)) {
-                    if (dateStr === '2026-01-15') holidayName = 'Company Day';
-                    else if (dateStr === '2026-05-01') holidayName = 'Labour Day';
-                    else if (dateStr === '2026-10-31') holidayName = 'Diwali';
-                }
-
-                if (holidayName) {
-                    const holidayElement = document.createElement('div');
-                    holidayElement.className = 'calendar-day-holiday-name';
-                    holidayElement.textContent = holidayName;
-                    dayElement.appendChild(holidayElement);
-                }
-            }
-
-            // Attendance status
-            if (attendance) {
-                const statusElement = document.createElement('div');
-                statusElement.className = `calendar-day-status ${attendance.status}`;
-
-                if (attendance.status === 'holiday') {
-                    statusElement.textContent = attendance.name || 'Holiday';
-                } else if (attendance.status === 'leave') {
-                    if (attendance.statusText) {
-                        statusElement.textContent = attendance.statusText;
-                    } else {
-                        statusElement.textContent = 'Leave';
-                    }
-                } else if (attendance.status === 'absent') {
-                    statusElement.textContent = 'Absent';
-                } else if (attendance.status === 'present') {
-                    statusElement.textContent = 'Present';
-                }
-
-                dayElement.appendChild(statusElement);
-            }
-
-            calendarGrid.appendChild(dayElement);
-        }
-    }
-
-    function updatePopupHolidays() {
-        const holidayList = document.getElementById('popup-upcoming-holidays-list');
-        holidayList.innerHTML = '';
-
-        const today = new Date();
-
-        // Filter and sort upcoming holidays
-        const upcoming = upcomingHolidaysList
-            .filter(holiday => {
-                const holidayDate = new Date(holiday.date);
-                return holidayDate >= today;
-            })
-            .sort((a, b) => new Date(a.date) - new Date(b.date))
-            .slice(0, 3);
-
-        if (upcoming.length === 0) {
-            holidayList.innerHTML = '<div style="text-align: center; color: var(--dark-text-secondary); font-size: 0.8rem; padding: 1rem;">No upcoming holidays</div>';
-            return;
-        }
-
-        upcoming.forEach(holiday => {
-            const holidayDate = new Date(holiday.date);
-            const today = new Date();
-            const diffTime = Math.abs(holidayDate - today);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            const holidayItem = document.createElement('div');
-            holidayItem.className = 'holiday-item-main';
-
-            const formattedDate = holidayDate.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-
-            holidayItem.innerHTML = `
-                <div class="holiday-date-main">${formattedDate}</div>
-                <div class="holiday-details-main">
-                    <div class="holiday-title-main">${holiday.name}</div>
-                    <div class="holiday-type-main">${holiday.type}</div>
-                </div>
-                <div class="days-away-main">${diffDays} day${diffDays !== 1 ? 's' : ''}</div>
-            `;
-
-            holidayList.appendChild(holidayItem);
-        });
-    }
-
-    function updatePopupLeaveStatistics() {
-        document.getElementById('popupLeavesTaken').textContent = employeeLeaveStats.leavesTaken;
-        document.getElementById('popupTotalLeaves').textContent = employeeLeaveStats.totalLeaves;
-        document.getElementById('popupAvailableLeaves').textContent = employeeLeaveStats.availableLeaves;
-    }
-
-    function prevCalendarMonthPopup() {
-        popupCalendarMonth--;
-        if (popupCalendarMonth < 0) {
-            popupCalendarMonth = 11;
-            popupCalendarYear--;
-        }
-        generatePopupCalendar();
-    }
-
-    function nextCalendarMonthPopup() {
-        popupCalendarMonth++;
-        if (popupCalendarMonth > 11) {
-            popupCalendarMonth = 0;
-            popupCalendarYear++;
-        }
-        generatePopupCalendar();
-    }
-
-    function goToTodayPopup() {
-        const today = new Date();
-        popupCalendarMonth = today.getMonth();
-        popupCalendarYear = today.getFullYear();
-        generatePopupCalendar();
-    }
-
-    // ========== LEAVE FORM FUNCTIONS ==========
-    let leaveSelectedDates = [];
-    let currentLeaveDuration = '';
-    let currentHalfDayType = 'first_half';
-    let smallCalendarMonth = new Date().getMonth();
-    let smallCalendarYear = new Date().getFullYear();
-
-    function isSunday(date) {
-        return date.getDay() === 0;
-    }
-
-    function isHoliday(dateStr) {
-        return holidays.includes(dateStr) || companyHolidays.includes(dateStr);
-    }
-
-    function isNonSelectable(dateStr, dateObj) {
-        const today = new Date();
-        today.setHours(0,0,0,0);
-
-        // Past dates are non-selectable
-        if (dateObj < today) {
-            return true;
-        }
-
-        // Sundays and holidays are non-selectable
-        if (isSunday(dateObj) || isHoliday(dateStr)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    function openApplyLeavePopup() {
-        const popup = document.getElementById('applyLeavePopup');
-        const overlay = document.getElementById('applyLeaveOverlay');
-
-        // Reset form completely
-        document.getElementById('applyLeaveForm').reset();
-        document.getElementById('leaveFileName').textContent = 'Click to upload file';
-
-        // Reset selection
-        leaveSelectedDates = [];
-        currentLeaveDuration = '';
-        currentHalfDayType = 'first_half';
-
-        // Reset UI elements
-        document.getElementById('submitLeaveBtn').disabled = true;
-        document.getElementById('leaveSummaryCompact').style.display = 'none';
-        document.getElementById('halfDaySelector').classList.remove('active');
-
-        // Update leave balance
-        updateLeaveBalance();
-
-        // Generate small calendar
-        generateSmallCalendar();
-
-        // Update leave summary
-        updateLeaveSummaryMainForm();
-
-        popup.classList.add('active');
-        overlay.classList.add('active');
-    }
-
-    function closeApplyLeavePopup() {
-        document.getElementById('applyLeavePopup').classList.remove('active');
-        document.getElementById('applyLeaveOverlay').classList.remove('active');
-
-        // Reset form completely when closed
-        setTimeout(() => {
-            document.getElementById('applyLeaveForm').reset();
-            document.getElementById('leaveFileName').textContent = 'Click to upload file';
-            leaveSelectedDates = [];
-            currentLeaveDuration = '';
-            document.getElementById('leaveSummaryCompact').style.display = 'none';
-            document.getElementById('submitLeaveBtn').disabled = true;
-            document.getElementById('halfDaySelector').classList.remove('active');
-        }, 300);
-    }
-
-    function updateLeaveBalance() {
-        const leaveType = document.getElementById('leaveType').value;
-        const balanceText = document.getElementById('leaveBalanceText');
-
-        const balances = {
-            'earned': '13 days',
-            'sick': '10 days',
-            'casual': '4 days',
-            'maternity': '180 days',
-            'paternity': '15 days',
-            'bereavement': '5 days',
-            'compensatory': '0 days'
-        };
-
-        if (leaveType && balances[leaveType]) {
-            balanceText.textContent = `Balance: ${balances[leaveType]}`;
-            balanceText.style.color = 'var(--success)';
-        } else {
-            balanceText.textContent = 'Balance: 0 days';
-            balanceText.style.color = 'var(--dark-text-secondary)';
-        }
-    }
-
-    function handleLeaveDurationChange() {
-        const leaveType = document.getElementById('leaveType').value;
-        const leaveDuration = document.getElementById('leaveDuration').value;
-        const halfDaySelector = document.getElementById('halfDaySelector');
-
-        // Check if leave type is selected
-        if (!leaveType) {
-            alert('Please select a leave type first.');
-            document.getElementById('leaveDuration').value = '';
-            return;
-        }
-
-        // Clear previously selected dates if duration changes
-        if (currentLeaveDuration !== leaveDuration) {
-            leaveSelectedDates = [];
-            document.getElementById('leaveSummaryCompact').style.display = 'none';
-            document.getElementById('submitLeaveBtn').disabled = true;
-
-            // Regenerate calendar to clear selected dates
-            generateSmallCalendar();
-        }
-
-        currentLeaveDuration = leaveDuration;
-
-        // Show/hide half day selector
-        if (leaveDuration === 'half_day') {
-            halfDaySelector.classList.add('active');
-        } else {
-            halfDaySelector.classList.remove('active');
-        }
-
-        // Disable submit button until dates are selected
-        document.getElementById('submitLeaveBtn').disabled = true;
-    }
-
-    // Function to generate small calendar for leave form
-    function generateSmallCalendar() {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                          'July', 'August', 'September', 'October', 'November', 'December'];
-
-        // Update calendar title
-        document.getElementById('smallCalendarMonthYear').textContent =
-            `${monthNames[smallCalendarMonth]} ${smallCalendarYear}`;
-
-        const firstDay = new Date(smallCalendarYear, smallCalendarMonth, 1);
-        const lastDay = new Date(smallCalendarYear, smallCalendarMonth + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startingDay = firstDay.getDay();
-
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-
-        const calendarGrid = document.getElementById('small-calendar-grid');
-
-        // Clear existing content
-        calendarGrid.innerHTML = '';
-
-        // Day headers
-        const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        dayHeaders.forEach((day, index) => {
-            const dayHeader = document.createElement('div');
-            dayHeader.className = 'small-calendar-day-header';
-            if (index === 0 || index === 6) {
-                dayHeader.classList.add('weekend');
-            }
-            dayHeader.textContent = day;
-            calendarGrid.appendChild(dayHeader);
-        });
-
-        // Empty cells for days before the first day of the month
-        for (let i = 0; i < startingDay; i++) {
-            const emptyDay = document.createElement('div');
-            emptyDay.className = 'small-calendar-day';
-            emptyDay.style.background = 'transparent';
-            emptyDay.style.border = 'none';
-            calendarGrid.appendChild(emptyDay);
-        }
-
-        // Days of the month
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${smallCalendarYear}-${String(smallCalendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dateObj = new Date(smallCalendarYear, smallCalendarMonth, day);
-            const dayOfWeek = dateObj.getDay();
-            const isSelected = leaveSelectedDates.includes(dateStr);
-            const isPast = dateObj < new Date(new Date().setHours(0,0,0,0));
-            const isToday = dateStr === todayStr;
-            const isHolidayDate = isHoliday(dateStr);
-            const isSunday = dayOfWeek === 0;
-            const isSaturday = dayOfWeek === 6;
-            const isNonSelectableDate = isNonSelectable(dateStr, dateObj);
-
-            // Get attendance status for this date
-            const attendance = calendarAttendanceData[dateStr];
-            // Check if user has applied for leave on this date
-            const userLeave = userLeaveRequests[dateStr];
-
-            const dayElement = document.createElement('div');
-            dayElement.className = 'small-calendar-day';
-
-            // Add appropriate classes
-            if (isSelected) {
-                dayElement.classList.add('selected');
-            }
-
-            if (isSunday || isSaturday) {
-                dayElement.classList.add('weekend');
-            }
-
-            if (isHolidayDate) {
-                dayElement.classList.add('holiday');
-            }
-
-            if (isToday) {
-                dayElement.classList.add('today');
-            }
-
-            if (isNonSelectableDate) {
-                dayElement.classList.add('non-selectable');
-            }
-
-            // Add attendance status class
-            if (attendance) {
-                dayElement.classList.add(attendance.status);
-            }
-
-            // If user has leave on this date
-            if (userLeave) {
-                dayElement.classList.add('leave');
-            }
-
-            // Day number
-            const dayNumber = document.createElement('div');
-            dayNumber.textContent = day;
-            dayElement.appendChild(dayNumber);
-
-            // Add status dot if there's attendance data or user leave
-            if (attendance || userLeave) {
-                const dot = document.createElement('div');
-                dot.className = 'small-calendar-day-dot';
-                dayElement.appendChild(dot);
-            }
-
-            // Make selectable if not non-selectable
-            if (!isNonSelectableDate) {
-                dayElement.style.cursor = 'pointer';
-                dayElement.onclick = function() {
-                    selectLeaveDateFromSmallCalendar(dateStr);
-                };
-            } else {
-                dayElement.style.cursor = 'not-allowed';
-
-                // Add title to indicate why it's non-selectable
-                if (isSunday) {
-                    dayElement.title = 'Sunday - Not selectable';
-                } else if (isHolidayDate) {
-                    dayElement.title = 'Holiday - Not selectable';
-                } else if (isPast) {
-                    dayElement.title = 'Cannot select past dates';
-                }
-            }
-
-            calendarGrid.appendChild(dayElement);
-        }
-    }
-
-    // Function to select leave date from small calendar
-    function selectLeaveDateFromSmallCalendar(dateStr) {
-        const leaveDuration = document.getElementById('leaveDuration').value;
-
-        // Check if leave duration is selected
-        if (!leaveDuration) {
-            alert('Please select a leave duration first.');
-            return;
-        }
-
-        // For single day selection (full day or half day)
-        if (leaveDuration === 'full_day' || leaveDuration === 'half_day') {
-            // Replace existing selection
-            leaveSelectedDates = [dateStr];
-        } else if (leaveDuration === 'multiple_days') {
-            // For multiple days, add/remove from selection
-            const index = leaveSelectedDates.indexOf(dateStr);
-            if (index === -1) {
-                leaveSelectedDates.push(dateStr);
-            } else {
-                leaveSelectedDates.splice(index, 1);
-            }
-        }
-
-        // Update calendar and summary
-        generateSmallCalendar();
-        updateLeaveSummaryMainForm();
-    }
-
-    // Small calendar navigation functions
-    function prevSmallCalendarMonth() {
-        smallCalendarMonth--;
-        if (smallCalendarMonth < 0) {
-            smallCalendarMonth = 11;
-            smallCalendarYear--;
-        }
-        generateSmallCalendar();
-    }
-
-    function nextSmallCalendarMonth() {
-        smallCalendarMonth++;
-        if (smallCalendarMonth > 11) {
-            smallCalendarMonth = 0;
-            smallCalendarYear++;
-        }
-        generateSmallCalendar();
-    }
-
-    function goToTodaySmallCalendar() {
-        const today = new Date();
-        smallCalendarMonth = today.getMonth();
-        smallCalendarYear = today.getFullYear();
-        generateSmallCalendar();
-    }
-
-    function updateLeaveSummaryMainForm() {
-        const leaveSummary = document.getElementById('leaveSummaryCompact');
-        const submitBtn = document.getElementById('submitLeaveBtn');
-
-        if (leaveSelectedDates.length === 0) {
-            leaveSummary.style.display = 'none';
-            submitBtn.disabled = true;
-            return;
-        }
-
-        // Update leave count badge
-        const leaveCount = leaveSelectedDates.length;
-        document.getElementById('effectiveLeavesCount').textContent =
-            leaveCount + ' day' + (leaveCount !== 1 ? 's' : '');
-
-        // Update selected dates display in main form
-        const selectedDatesList = document.getElementById('selectedDatesList');
-
-        if (leaveSelectedDates.length === 0) {
-            selectedDatesList.innerHTML = '<span style="color: var(--dark-text-secondary); font-size: 0.7rem;">No dates selected</span>';
-            return;
-        }
-
-        // Sort dates
-        leaveSelectedDates.sort();
-
-        // Display dates
-        let datesHtml = '';
-        leaveSelectedDates.forEach(dateStr => {
-            const date = new Date(dateStr);
-            const formattedDate = date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-            datesHtml += `<div class="selected-date-tag">${formattedDate}</div>`;
-        });
-
-        selectedDatesList.innerHTML = datesHtml;
-
-        // Enable/disable submit button
-        submitBtn.disabled = leaveSelectedDates.length === 0;
-
-        leaveSummary.style.display = 'block';
-    }
-
-    // Function to submit leave form from popup
-  function submitLeaveFormFromPopup() {
-    const leaveType = document.getElementById('leaveType').value;
-    const leaveDuration = document.getElementById('leaveDuration').value;
-    const halfDayType = leaveDuration === 'half_day' ? document.getElementById('halfDayType').value : '';
-    const reason = document.getElementById('leaveReason').value;
-    const contactNumber = document.getElementById('contactNumber').value;
-
-    // Get selected dates
-    const selectedDates = leaveSelectedDates;
-
-    // Prepare the data for API
-    const leaveRequestData = {
-        leaveTypeId: getLeaveTypeId(leaveType), // You need to map leave type to ID
-        startDate: selectedDates[0],
-        endDate: selectedDates[selectedDates.length - 1],
-        totalDays: selectedDates.length,
-        halfDayType: halfDayType,
-        reason: reason,
-        contactNumber: contactNumber,
-        selectedDates: selectedDates
-    };
-
-    // Call the API
-    fetch('/employee/leave/apply', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(leaveRequestData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccessPopup(
-                'Leave Request Submitted Successfully!',
-                `Leave ID: ${data.leaveId}\nYour request is now pending approval.`
-            );
-
-            // Close the popup
-            closeApplyLeavePopup();
-
-            // Refresh the leave list
-            loadMyLeaves();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to submit leave request');
-    });
+constructor() {
+this.totalMinutes = 0;
+this.targetMinutes = 480; // 8 hours
+this.isClockedIn = false;
+this.checkInTime = null;
+this.load();
+this.updateDisplay();
 }
 
-    function submitLeaveForm(event) {
-        event.preventDefault();
-
-        const leaveType = document.getElementById('leaveType').value;
-        const leaveDuration = document.getElementById('leaveDuration').value;
-        const halfDayType = leaveDuration === 'half_day' ? document.getElementById('halfDayType').value : '';
-        const reason = document.getElementById('leaveReason').value;
-
-        // Validate selection
-        if (leaveSelectedDates.length === 0) {
-            alert('Please select at least one date for leave from the calendar on the right.');
-            return false;
-        }
-
-        // Validate leave duration matches selection
-        if ((leaveDuration === 'full_day' || leaveDuration === 'half_day') && leaveSelectedDates.length > 1) {
-            alert('For single day or half day leave, please select only one date.');
-            return false;
-        }
-
-        // Get dates based on duration
-        let fromDate, toDate, durationText;
-        const leaveCount = leaveSelectedDates.length;
-
-        if (leaveDuration === 'full_day') {
-            fromDate = leaveSelectedDates[0];
-            toDate = fromDate;
-            durationText = '1 day';
-        } else if (leaveDuration === 'half_day') {
-            fromDate = leaveSelectedDates[0];
-            toDate = fromDate;
-            const halfDayLabel = halfDayType === 'first_half' ? 'First Half' : 'Second Half';
-            durationText = `0.5 day (${halfDayLabel})`;
-        } else if (leaveDuration === 'multiple_days') {
-            // Sort dates
-            leaveSelectedDates.sort();
-            fromDate = leaveSelectedDates[0];
-            toDate = leaveSelectedDates[leaveSelectedDates.length - 1];
-            durationText = `${leaveCount} days`;
-        }
-
-        const leaveId = 'LV-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-        const today = new Date().toISOString().split('T')[0];
-
-        // Add to pending leave requests table
-        const tableBody = document.getElementById('pending-leave-requests');
-        const newRow = document.createElement('tr');
-
-        const typeLabels = {
-            'earned': 'Earned Leave',
-            'sick': 'Sick Leave',
-            'casual': 'Casual Leave',
-            'maternity': 'Maternity Leave',
-            'paternity': 'Paternity Leave',
-            'bereavement': 'Bereavement Leave',
-            'compensatory': 'Compensatory Leave'
-        };
-
-        // Format dates for display
-        const fromDateFormatted = new Date(fromDate).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-
-        const toDateFormatted = new Date(toDate).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-
-        newRow.innerHTML = `
-            <td>${leaveId}</td>
-            <td>${typeLabels[leaveType] || leaveType}</td>
-            <td>${fromDate}</td>
-            <td>${toDate}</td>
-            <td>${durationText}</td>
-            <td>${reason.substring(0, 30)}${reason.length > 30 ? '...' : ''}</td>
-            <td><span class="status-badge pending">Pending</span></td>
-            <td>
-                <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="cancelLeaveRequest('${leaveId}')">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-            </td>
-        `;
-
-        tableBody.appendChild(newRow);
-
-        document.getElementById('emptyLeaveState').style.display = 'none';
-
-        // Store leave request in userLeaveRequests object
-        leaveSelectedDates.forEach(dateStr => {
-            userLeaveRequests[dateStr] = {
-                id: leaveId,
-                type: leaveType,
-                reason: reason,
-                status: 'pending',
-                appliedDate: today
-            };
-        });
-
-        // Update employee leave statistics
-        if (leaveDuration === 'half_day') {
-            employeeLeaveStats.leavesTaken += 0.5;
-            employeeLeaveStats.availableLeaves -= 0.5;
-        } else {
-            employeeLeaveStats.leavesTaken += leaveCount;
-            employeeLeaveStats.availableLeaves -= leaveCount;
-        }
-
-        // Update the display
-        updateLeaveStatistics();
-
-        // Show success popup with more details
-        showSuccessPopup(
-            'Leave Request Submitted Successfully!',
-            `Leave ID: ${leaveId}\nType: ${typeLabels[leaveType] || leaveType}\nDuration: ${durationText}\nFrom: ${fromDateFormatted} To: ${toDateFormatted}\n\nYour request is now pending approval.`
-        );
-
-        // Update calendar to show leave status
-        generateMainCalendar();
-        generatePopupCalendar();
-
-        // Reset the form completely
-        closeApplyLeavePopup();
-
-        // Clear all selections
-        leaveSelectedDates = [];
-        currentLeaveDuration = '';
-
-        return false;
-    }
-
-    function cancelLeaveRequest(leaveId) {
-        if (confirm(`Are you sure you want to cancel leave request ${leaveId}?`)) {
-            // Remove from userLeaveRequests
-            for (const date in userLeaveRequests) {
-                if (userLeaveRequests[date].id === leaveId) {
-                    delete userLeaveRequests[date];
-                }
-            }
-
-            alert(`Leave request ${leaveId} has been cancelled.`);
-
-            const rows = document.querySelectorAll('#pending-leave-requests tr');
-            rows.forEach(row => {
-                if (row.cells[0].textContent === leaveId) {
-                    row.remove();
-                }
-            });
-
-            const pendingRows = document.querySelectorAll('#pending-leave-requests tr');
-            if (pendingRows.length === 0) {
-                document.getElementById('emptyLeaveState').style.display = 'block';
-            }
-
-            // Update calendar
-            generateMainCalendar();
-            generatePopupCalendar();
-        }
-    }
-
-    // ========== SUCCESS POPUP FUNCTIONS ==========
-    function showSuccessPopup(title, message) {
-        const successPopup = document.getElementById('successPopup');
-        const successPopupTitle = document.getElementById('successPopupTitle');
-        const successPopupMessage = document.getElementById('successPopupMessage');
-
-        successPopupTitle.textContent = title;
-        successPopupMessage.textContent = message;
-
-        successPopup.classList.add('show');
-
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            if (successPopup.classList.contains('show')) {
-                closeSuccessPopup();
-            }
-        }, 5000);
-    }
-
-    function closeSuccessPopup() {
-        const successPopup = document.getElementById('successPopup');
-        successPopup.classList.remove('show');
-    }
-
-    // ========== REGULARIZATION FUNCTIONS ==========
-    function openRegularizationPopup() {
-        const popup = document.getElementById('regularizationPopup');
-        const overlay = document.getElementById('regularizationOverlay');
-
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('regularizationDate').value = today;
-
-        document.getElementById('regularizationForm').reset();
-        document.getElementById('fileName').textContent = 'Click to upload file';
-
-        toggleTimeFields();
-
-        popup.classList.add('active');
-        overlay.classList.add('active');
-    }
-
-    function closeRegularizationPopup() {
-        document.getElementById('regularizationPopup').classList.remove('active');
-        document.getElementById('regularizationOverlay').classList.remove('active');
-    }
-
-    function toggleTimeFields() {
-        const requestType = document.getElementById('requestType').value;
-        const timeFields = document.getElementById('timeFields');
-
-        const showTimeFields = [
-            'missing_checkin',
-            'missing_checkout',
-            'both_missing',
-            'wrong_time'
-        ];
-
-        if (showTimeFields.includes(requestType)) {
-            timeFields.style.display = 'block';
-
-            if (requestType === 'missing_checkin' || requestType === 'both_missing') {
-                document.getElementById('checkinTime').required = true;
-            } else {
-                document.getElementById('checkinTime').required = false;
-            }
-
-            if (requestType === 'missing_checkout' || requestType === 'both_missing') {
-                document.getElementById('checkoutTime').required = true;
-            } else {
-                document.getElementById('checkoutTime').required = false;
-            }
-
-            if (requestType === 'wrong_time') {
-                document.getElementById('checkinTime').required = true;
-                document.getElementById('checkoutTime').required = true;
-            }
-        } else {
-            timeFields.style.display = 'none';
-            document.getElementById('checkinTime').required = false;
-            document.getElementById('checkoutTime').required = false;
-        }
-    }
-
-    // File upload handling
-    document.getElementById('supportingDoc').addEventListener('change', function(e) {
-        const fileName = e.target.files[0] ? e.target.files[0].name : 'Click to upload file';
-        document.getElementById('fileName').textContent = fileName;
-    });
-
-    function submitRegularizationForm(event) {
-        event.preventDefault();
-
-        const date = document.getElementById('regularizationDate').value;
-        const type = document.getElementById('requestType').value;
-        const reason = document.getElementById('regularizationReason').value;
-
-        const requestId = 'REQ' + String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
-        const today = new Date().toISOString().split('T')[0];
-
-        const tableBody = document.querySelector('#regularization table tbody');
-        const newRow = document.createElement('tr');
-
-        const typeLabels = {
-            'missing_checkin': 'Missing Check-in',
-            'missing_checkout': 'Missing Check-out',
-            'both_missing': 'Both Missing',
-            'wrong_time': 'Wrong Time Recorded',
-            'full_day': 'Full Day Absence',
-            'late_mark': 'Remove Late Mark',
-            'early_out': 'Remove Early Out Mark'
-        };
-
-        newRow.innerHTML = `
-            <td>${requestId}</td>
-            <td>${date}</td>
-            <td>${typeLabels[type] || type}</td>
-            <td>${reason.substring(0, 50)}${reason.length > 50 ? '...' : ''}</td>
-            <td><span class="status-badge pending">Pending</span></td>
-            <td>${today}</td>
-            <td>
-                <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="withdrawRequest('${requestId}')">
-                    <i class="fas fa-trash-alt"></i> Withdraw
-                </button>
-            </td>
-        `;
-
-        tableBody.insertBefore(newRow, tableBody.firstChild);
-
-        document.getElementById('emptyState').style.display = 'none';
-
-        // Show success popup for regularization
-        showSuccessPopup(
-            'Regularization Request Submitted!',
-            `Request ${requestId} has been submitted successfully. It will be reviewed by your manager.`
-        );
-
-        closeRegularizationPopup();
-
-        document.getElementById('regularizationForm').reset();
-
-        return false;
-    }
-
-    function withdrawRequest(requestId) {
-        if (confirm(`Are you sure you want to withdraw request ${requestId}?`)) {
-            alert(`Request ${requestId} has been withdrawn.`);
-
-            const rows = document.querySelectorAll('#regularization table tbody tr');
-            rows.forEach(row => {
-                if (row.cells[0].textContent === requestId) {
-                    row.remove();
-                }
-            });
-
-            const pendingRows = document.querySelectorAll('#regularization table tbody tr');
-            if (pendingRows.length === 0) {
-                document.getElementById('emptyState').style.display = 'block';
-            }
-        }
-    }
-
-    // ========== PROFILE PICTURE ==========
-    function uploadProfilePic(input) {
-        if (!input.files || !input.files[0]) return;
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const box = document.getElementById('profilePicBox');
-            box.querySelector('img')?.remove();
-            box.querySelector('span')?.remove();
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.className = 'profile-img';
-            box.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function deleteProfilePic() {
-        const box = document.getElementById('profilePicBox');
-        box.querySelector('img')?.remove();
-        const span = document.createElement('span');
-        span.className = 'profile-fallback';
-        span.textContent = 'U';
-        box.appendChild(span);
-    }
-
-    // ========== DROPDOWN TOGGLES ==========
-    function toggleNotificationDropdown(event) {
-        event.stopPropagation();
-        const dropdown = document.getElementById('notificationDropdownMenu');
-        const profileDropdown = document.getElementById('profileDropdownMenu');
-        profileDropdown.classList.remove('show');
-        dropdown.classList.toggle('show');
-        event.currentTarget.setAttribute('aria-expanded', dropdown.classList.contains('show'));
-    }
-
-    function toggleProfileDropdown(event) {
-        event.stopPropagation();
-        const dropdown = document.getElementById('profileDropdownMenu');
-        const notificationDropdown = document.getElementById('notificationDropdownMenu');
-        notificationDropdown.classList.remove('show');
-        dropdown.classList.toggle('show');
-        event.currentTarget.setAttribute('aria-expanded', dropdown.classList.contains('show'));
-    }
-
-    // ========== CLOSE DROPDOWNS ON OUTSIDE CLICK ==========
-    document.addEventListener('click', function(e) {
-        const notificationDropdown = document.getElementById('notificationDropdownMenu');
-        const profileDropdown = document.getElementById('profileDropdownMenu');
-        const notificationTrigger = document.querySelector('.notification-trigger');
-        const profileTrigger = document.querySelector('.profile-trigger');
-
-        if (!notificationTrigger.contains(e.target) && !notificationDropdown.contains(e.target)) {
-            notificationDropdown.classList.remove('show');
-            notificationTrigger.setAttribute('aria-expanded', 'false');
-        }
-
-        if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
-            profileDropdown.classList.remove('show');
-            profileTrigger.setAttribute('aria-expanded', 'false');
-        }
-
-        // Close popups
-        const regPopup = document.getElementById('regularizationPopup');
-        const regOverlay = document.getElementById('regularizationOverlay');
-        const leavePopup = document.getElementById('applyLeavePopup');
-        const leaveOverlay = document.getElementById('applyLeaveOverlay');
-        const calendarPopup = document.getElementById('calendarPopup');
-        const calendarOverlay = document.getElementById('calendarOverlay');
-
-        if (regPopup.classList.contains('active') &&
-            regOverlay.contains(e.target) &&
-            !regPopup.contains(e.target)) {
-            closeRegularizationPopup();
-        }
-
-        if (leavePopup.classList.contains('active') &&
-            leaveOverlay.contains(e.target) &&
-            !leavePopup.contains(e.target)) {
-            closeApplyLeavePopup();
-        }
-
-        if (calendarPopup.classList.contains('active') &&
-            calendarOverlay.contains(e.target) &&
-            !calendarPopup.contains(e.target)) {
-            closeCalendarPopup();
-        }
-    });
-
-    // ========== ESCAPE KEY TO CLOSE DROPDOWNS ==========
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            const notificationDropdown = document.getElementById('notificationDropdownMenu');
-            const profileDropdown = document.getElementById('profileDropdownMenu');
-            const notificationTrigger = document.querySelector('.notification-trigger');
-            const profileTrigger = document.querySelector('.profile-trigger');
-            const regPopup = document.getElementById('regularizationPopup');
-            const leavePopup = document.getElementById('applyLeavePopup');
-            const calendarPopup = document.getElementById('calendarPopup');
-            const successPopup = document.getElementById('successPopup');
-
-            notificationDropdown.classList.remove('show');
-            profileDropdown.classList.remove('show');
-            notificationTrigger.setAttribute('aria-expanded', 'false');
-            profileTrigger.setAttribute('aria-expanded', 'false');
-
-            if (regPopup.classList.contains('active')) {
-                closeRegularizationPopup();
-            }
-
-            if (leavePopup.classList.contains('active')) {
-                closeApplyLeavePopup();
-            }
-
-            if (calendarPopup.classList.contains('active')) {
-                closeCalendarPopup();
-            }
-
-            if (successPopup.classList.contains('show')) {
-                closeSuccessPopup();
-            }
-        }
-    });
-
-    // ========== ACTIVATE PROFILE TAB ==========
-    function activateProfileTab() {
-        document.getElementById('profileDropdownMenu').classList.remove('show');
-        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-
-        const profileMenuItem = document.querySelector('[data-tab="profile"]');
-        if (profileMenuItem) profileMenuItem.classList.add('active');
-        document.getElementById('profile').classList.add('active');
-        document.getElementById('recentActivityCard').style.display = 'block';
-        document.getElementById('profileCardContainer').style.display = 'block';
-
-        document.querySelectorAll('.sub-nav-item').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelector('[data-subtab="personal-info"]').classList.add('active');
-        document.getElementById('personal-info').classList.add('active');
-
-        currentTab = 'profile';
-    }
-
-    // ========== DOCUMENT PREVIEW ==========
-    function viewDocument(documentId, documentType) {
-        const isCandidatePage = window.location.pathname.includes('/candidate/');
-        const previewUrl = isCandidatePage ? `/candidate/download/${documentId}` : `/onboarding/download/${documentId}`;
-
-        document.getElementById('previewTitle').textContent = documentType.replace(/_/g, ' ') + ' - Preview';
-        document.getElementById('previewDownloadBtn').href = previewUrl;
-
-        const modal = document.getElementById('previewModal');
-        modal.style.display = 'flex';
-
-        fetch(previewUrl)
-            .then(r => {
-                if (!r.ok) throw new Error('Document not found');
-                return r.blob();
-            })
-            .then(blob => {
-                const contentType = blob.type;
-                const contentDiv = document.getElementById('previewContent');
-                contentDiv.innerHTML = '';
-
-                if (contentType === 'application/pdf') {
-                    const objectUrl = URL.createObjectURL(blob);
-                    contentDiv.innerHTML = `<embed src="${objectUrl}" type="application/pdf" width="100%" height="100%" style="border: none; border-radius: 8px;" />`;
-                } else if (contentType.startsWith('image/')) {
-                    const objectUrl = URL.createObjectURL(blob);
-                    const img = document.createElement('img');
-                    img.src = objectUrl;
-                    img.style.maxWidth = '100%';
-                    img.style.maxHeight = '100%';
-                    img.style.borderRadius = '8px';
-                    img.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
-                    contentDiv.appendChild(img);
-                } else {
-                    contentDiv.innerHTML = `
-                        <div style="text-align: center; color: var(--dark-text-secondary);">
-                            <i class="fas fa-file-alt" style="font-size: 48px; margin-bottom: 15px;"></i>
-                            <p>This document type cannot be previewed.</p>
-                            <p>Please download to view.</p>
-                            <a href="${previewUrl}" class="btn-icon btn-icon-download" style="width: auto; padding: 5px 15px; margin-top: 15px; text-decoration: none;">
-                                <i class="fas fa-download"></i> Download File
-                            </a>
-                        </div>`;
-                }
-            })
-            .catch(err => {
-                document.getElementById('previewContent').innerHTML = `
-                    <div style="text-align: center; color: var(--danger);">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 15px;"></i>
-                        <p>Failed to load document preview.</p>
-                        <p>${err.message}</p>
-                    </div>`;
-            });
-    }
-
-    function closePreview() {
-        const modal = document.getElementById('previewModal');
-        modal.style.display = 'none';
-        const embed = document.querySelector('#previewContent embed');
-        const img = document.querySelector('#previewContent img');
-        if (embed) URL.revokeObjectURL(embed.src);
-        if (img) URL.revokeObjectURL(img.src);
-    }
-
-    // ========== URL PARAM HANDLER ==========
-    document.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const activeTab = urlParams.get('activeTab');
-        const activeSubTab = urlParams.get('activeSubTab');
-
-        if (activeTab === 'profile' && activeSubTab === 'documents') {
-            window.history.replaceState({}, '', window.location.pathname);
-            activateProfileTab();
-            document.querySelector('[data-subtab="profile-documents"]').click();
-        }
-    });
-
-    // ========== STATUS INDICATOR ==========
-    const statusIndicator = document.getElementById('statusIndicatorCard');
-    const employeeId = '[[${employee.employeeId}]]';
-    let currentPresenceStatus = '[[${employee.presenceStatus}]]' || 'OFFLINE';
-
-   // Replace the existing updateStatusIndicator function with this:
+load() {
+const today = new Date().toDateString();
+const raw = localStorage.getItem('workingHoursToday');
+if (raw) {
+const data = JSON.parse(raw);
+if (data.date === today) {
+this.totalMinutes = data.minutes || 0;
+this.isClockedIn = data.isClockedIn || false;
+this.checkInTime = data.checkInTime ? new Date(data.checkInTime) : null;
+}
+}
+}
+
+save() {
+localStorage.setItem('workingHoursToday', JSON.stringify({
+date: new Date().toDateString(),
+minutes: this.totalMinutes,
+isClockedIn: this.isClockedIn,
+checkInTime: this.checkInTime ? this.checkInTime.toISOString() : null
+}));
+}
+
+setClockedIn(status) {
+this.isClockedIn = status;
+if (status && !this.checkInTime) {
+this.checkInTime = new Date();
+} else if (!status) {
+this.checkInTime = null;
+}
+this.save();
+}
+
+format(min) {
+const h = Math.floor(min / 60);
+const m = min % 60;
+return `${h}h ${m}m`;
+}
+
+updateDisplay() {
+const perc = Math.min((this.totalMinutes / this.targetMinutes) * 100, 100);
+const timeStr = this.format(this.totalMinutes);
+const hoursDisplay = document.getElementById('hoursDisplayTop');
+const percentageText = document.getElementById('percentageTextTooltip');
+
+if (hoursDisplay) hoursDisplay.textContent = timeStr;
+if (percentageText) percentageText.textContent = Math.round(perc) + '%';
+}
+
+syncWithAttendance(status, checkInTime) {
+this.isClockedIn = (status === 'ACTIVE');
+if (checkInTime) {
+this.checkInTime = new Date(checkInTime);
+}
+this.save();
+}
+}
+
+const whTracker = new WorkingHoursTracker();
+
+// ================= MAIN NAVIGATION =================
+let currentTab = 'dashboard';
+document.querySelectorAll('.menu-item').forEach(item => {
+item.addEventListener('click', () => {
+const target = item.getAttribute('data-tab');
+if (!target) return;
+currentTab = target;
+document.getElementById('profileCardContainer').style.display = target === 'profile' ? 'block' : 'none';
+document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+item.classList.add('active');
+document.getElementById(target).classList.add('active');
+document.getElementById('recentActivityCard').style.display = target === 'dashboard' ? 'block' : 'none';
+
+// Initialize attendance tab if selected
+if (target === 'attendance') {
+initializeAttendanceTab();
+}
+});
+});
+
+document.querySelectorAll('.sub-nav-item').forEach(btn => {
+btn.addEventListener('click', () => {
+const sub = btn.getAttribute('data-subtab');
+if (!sub) return;
+const container = btn.closest('.tab-pane');
+container.querySelectorAll('.sub-nav-item').forEach(el => el.classList.remove('active'));
+container.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+btn.classList.add('active');
+container.querySelector('#' + sub).classList.add('active');
+});
+});
+
+// ================= ATTENDANCE TAB NAVIGATION =================
+function openAttendanceTab(tabName) {
+document.querySelectorAll('#attendance .tab-content').forEach(tab => {
+tab.classList.remove('active');
+});
+document.querySelectorAll('#attendance .tab').forEach(tab => {
+tab.classList.remove('active');
+});
+document.getElementById(tabName).classList.add('active');
+event.target.classList.add('active');
+
+closeCalendarPopup();
+
+if (tabName === 'timesheet') {
+loadTimesheetData();
+} else if (tabName === 'calendar') {
+generateMainCalendar();
+updateUpcomingHolidays();
+updateLeaveStatistics();
+}
+}
+
+// ================= INITIALIZE ATTENDANCE TAB =================
+function initializeAttendanceTab() {
+// Set current date
+const now = new Date();
+const options = { month: 'long', day: 'numeric', year: 'numeric' };
+document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', options);
+
+// Initialize timesheet
+loadTimesheetData();
+
+// Initialize calendar
+generateMainCalendar();
+updateUpcomingHolidays();
+updateLeaveStatistics();
+
+// Start live timer
+startLiveTimer();
+}
+
+// ================= LIVE TIMER =================
+let startTime = new Date();
+startTime.setHours(9, 0, 0, 0);
+
+function startLiveTimer() {
+updateTimer();
+setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+const now = new Date();
+const diff = now - startTime;
+
+const hours = Math.floor(diff / 3600000);
+const minutes = Math.floor((diff % 3600000) / 60000);
+const seconds = Math.floor((diff % 60000) / 1000);
+
+// Ensure only positive numbers are displayed
+const displayHours = Math.max(0, hours);
+const displayMinutes = Math.max(0, minutes);
+const displaySeconds = Math.max(0, seconds);
+
+// Update all timers
+document.getElementById('live-timer-large').textContent =
+`${displayHours.toString().padStart(2, '0')}:${displayMinutes.toString().padStart(2, '0')}:${displaySeconds.toString().padStart(2, '0')}`;
+
+// Update total hours display
+const totalDisplayHours = Math.max(0, hours);
+const totalDisplayMinutes = Math.max(0, minutes);
+
+// Update in multiple places
+document.getElementById('total-hours-small').textContent = `${totalDisplayHours}h ${totalDisplayMinutes}m`;
+
+// Calculate overtime only if worked more than 8 hours
+if (totalDisplayHours >= 8) {
+const overtimeHours = totalDisplayHours - 8;
+const overtimeMins = totalDisplayMinutes;
+document.getElementById('overtime-small').textContent = `${overtimeHours}h ${overtimeMins}m`;
+document.getElementById('overtime-small').style.color = 'var(--primary)';
+} else {
+document.getElementById('overtime-small').textContent = '0h 0m';
+document.getElementById('overtime-small').style.color = 'var(--dark-text)';
+}
+
+// Update working hours tracker with positive values only
+whTracker.totalMinutes = Math.max(0, totalDisplayHours * 60 + totalDisplayMinutes);
+whTracker.updateDisplay();
+
+// Update timesheet with positive values
+const todayRow = document.querySelector('#timesheet-body tr:first-child');
+if (todayRow) {
+todayRow.cells[4].textContent = `${totalDisplayHours}h ${totalDisplayMinutes}m`;
+}
+}
+
+// ================= UTILITY FUNCTIONS =================
+function takeBreak() {
+alert('Break started. 30 minutes break time remaining.');
+}
+
+function logout() {
+if (confirm('Are you sure you want to logout?')) {
+alert('Logging out...');
+}
+}
+
+// ================= TIMESHEET FUNCTIONS =================
+function loadTimesheetData() {
+const timesheetBody = document.getElementById('timesheet-body');
+
+const timesheetData = [
+{
+date: '2026-01-07',
+day: 'Wednesday',
+checkin: '09:00 AM',
+checkout: '--:--',
+totalHours: '7h 30m',
+overtime: '0h 30m',
+status: 'Present',
+remarks: 'Working'
+},
+{
+date: '2026-01-06',
+day: 'Tuesday',
+checkin: '09:15 AM',
+checkout: '06:30 PM',
+totalHours: '8h 45m',
+overtime: '1h 15m',
+status: 'Present',
+remarks: 'Project Deadline'
+},
+{
+date: '2026-01-05',
+day: 'Monday',
+checkin: '09:00 AM',
+checkout: '05:45 PM',
+totalHours: '8h 15m',
+overtime: '0h 00m',
+status: 'Early Out',
+remarks: 'Doctor Appointment'
+},
+{
+date: '2026-01-04',
+day: 'Sunday',
+checkin: '--:--',
+checkout: '--:--',
+totalHours: '0h 00m',
+overtime: '0h 00m',
+status: 'Weekend',
+remarks: 'Weekly Off'
+},
+{
+date: '2026-01-03',
+day: 'Saturday',
+checkin: '--:--',
+checkout: '--:--',
+totalHours: '0h 00m',
+overtime: '0h 00m',
+status: 'Weekend',
+remarks: 'Weekly Off'
+},
+{
+date: '2026-01-02',
+day: 'Friday',
+checkin: '09:00 AM',
+checkout: '06:00 PM',
+totalHours: '8h 00m',
+overtime: '0h 00m',
+status: 'Present',
+remarks: 'Normal Day'
+}
+];
+
+timesheetBody.innerHTML = '';
+
+timesheetData.forEach(entry => {
+const row = document.createElement('tr');
+
+let statusClass = 'present';
+if (entry.status === 'Early Out' || entry.status === 'Late' || entry.status === 'Absent') {
+statusClass = 'absent';
+} else if (entry.status === 'Weekend') {
+statusClass = 'holiday';
+} else if (entry.status === 'Leave') {
+statusClass = 'leave';
+}
+
+row.innerHTML = `
+<td>${entry.date}</td>
+<td>${entry.day}</td>
+<td>${entry.checkin}</td>
+<td>${entry.checkout}</td>
+<td>${entry.totalHours}</td>
+<td>${entry.overtime}</td>
+<td><span class="status-badge ${statusClass}">${entry.status}</span></td>
+<td>${entry.remarks}</td>
+`;
+
+timesheetBody.appendChild(row);
+});
+}
+
+function exportTimesheet() {
+const month = document.getElementById('timesheetMonth').options[document.getElementById('timesheetMonth').selectedIndex].text;
+const year = document.getElementById('timesheetYear').value;
+alert(`Exporting ${month} ${year} timesheet to Excel...`);
+}
+
+function printTimesheet() {
+window.print();
+}
+
+// ================= CALENDAR POPUP FUNCTIONS =================
+function toggleCalendarPopup() {
+const popup = document.getElementById('calendarPopup');
+const overlay = document.getElementById('calendarOverlay');
+
+if (popup.classList.contains('active')) {
+closeCalendarPopup();
+} else {
+generatePopupCalendar();
+updatePopupHolidays();
+updatePopupLeaveStatistics();
+
+popup.classList.add('active');
+overlay.classList.add('active');
+}
+}
+
+function closeCalendarPopup() {
+document.getElementById('calendarPopup').classList.remove('active');
+document.getElementById('calendarOverlay').classList.remove('active');
+}
+
+// ================= CALENDAR TAB FUNCTIONS =================
+let currentCalendarMonth = new Date().getMonth();
+let currentCalendarYear = new Date().getFullYear();
+
+// Define holidays (YYYY-MM-DD format)
+const holidays = [
+'2026-01-01', // New Year's Day
+'2026-01-26', // Republic Day
+'2026-03-29', // Good Friday
+'2026-08-15', // Independence Day
+'2026-10-02', // Gandhi Jayanti
+'2026-12-25'  // Christmas
+];
+
+// Define company-specific holidays
+const companyHolidays = [
+'2026-01-15', // Company Foundation Day
+'2026-05-01', // Labour Day
+'2026-10-31'  // Diwali
+];
+
+// Sample attendance data for calendar
+const calendarAttendanceData = {
+'2026-01-01': { status: 'holiday', name: 'New Year' },
+'2026-01-05': { status: 'present' },
+'2026-01-06': { status: 'present' },
+'2026-01-07': { status: 'present' },
+'2026-01-08': { status: 'present' },
+'2026-01-09': { status: 'present' },
+'2026-01-13': { status: 'present' },
+'2026-01-14': { status: 'present' },
+'2026-01-15': { status: 'holiday', name: 'Company Foundation Day' },
+'2026-01-19': { status: 'present' },
+'2026-01-20': { status: 'present' },
+'2026-01-21': { status: 'present' },
+'2026-01-22': { status: 'present' },
+'2026-01-23': { status: 'present' },
+'2026-01-26': { status: 'holiday', name: 'Republic Day' },
+'2026-01-27': { status: 'absent', reason: 'Unauthorized' },
+'2026-01-28': { status: 'present' },
+'2026-01-29': { status: 'present' },
+'2026-01-30': { status: 'present' }
+};
+
+// User leave requests
+const userLeaveRequests = {};
+
+// Upcoming holidays for display
+const upcomingHolidaysList = [
+{ date: '2026-01-26', name: 'Republic Day', type: 'National Holiday' },
+{ date: '2026-03-29', name: 'Good Friday', type: 'National Holiday' },
+{ date: '2026-05-01', name: 'Labour Day', type: 'Public Holiday' },
+{ date: '2026-08-15', name: 'Independence Day', type: 'National Holiday' },
+{ date: '2026-10-02', name: 'Gandhi Jayanti', type: 'National Holiday' },
+{ date: '2026-10-31', name: 'Diwali', type: 'Festival Holiday' },
+{ date: '2026-12-25', name: 'Christmas', type: 'Public Holiday' }
+];
+
+// Employee leave statistics
+const employeeLeaveStats = {
+leavesTaken: 5,
+totalLeaves: 15,
+availableLeaves: 10
+};
+
+function updateLeaveStatistics() {
+document.getElementById('leavesTaken').textContent = employeeLeaveStats.leavesTaken;
+document.getElementById('totalLeaves').textContent = employeeLeaveStats.totalLeaves;
+document.getElementById('availableLeaves').textContent = employeeLeaveStats.availableLeaves;
+}
+
+function generateMainCalendar() {
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Update calendar title
+document.getElementById('calendar-month-year').textContent =
+`${monthNames[currentCalendarMonth]} ${currentCalendarYear}`;
+
+const firstDay = new Date(currentCalendarYear, currentCalendarMonth, 1);
+const lastDay = new Date(currentCalendarYear, currentCalendarMonth + 1, 0);
+const daysInMonth = lastDay.getDate();
+const startingDay = firstDay.getDay();
+
+const today = new Date();
+const todayStr = today.toISOString().split('T')[0];
+
+const calendarGrid = document.getElementById('main-calendar');
+
+// Clear existing content
+calendarGrid.innerHTML = '';
+
+// Day headers
+const dayHeaders = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+dayHeaders.forEach((day, index) => {
+const dayHeader = document.createElement('div');
+dayHeader.className = 'calendar-day-header';
+if (index === 0 || index === 6) {
+dayHeader.classList.add('weekend');
+}
+dayHeader.textContent = day.substring(0, 3);
+calendarGrid.appendChild(dayHeader);
+});
+
+// Empty cells for days before the first day of the month
+for (let i = 0; i < startingDay; i++) {
+const emptyDay = document.createElement('div');
+emptyDay.className = 'calendar-day-main';
+emptyDay.style.background = 'transparent';
+emptyDay.style.border = 'none';
+calendarGrid.appendChild(emptyDay);
+}
+
+// Days of the month
+for (let day = 1; day <= daysInMonth; day++) {
+const dateStr = `${currentCalendarYear}-${String(currentCalendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+const dateObj = new Date(currentCalendarYear, currentCalendarMonth, day);
+const dayOfWeek = dateObj.getDay();
+
+// Check if it's a holiday
+const isHoliday = holidays.includes(dateStr) || companyHolidays.includes(dateStr);
+const isSunday = dayOfWeek === 0;
+const isSaturday = dayOfWeek === 6;
+const isPast = dateObj < new Date(new Date().setHours(0,0,0,0));
+const isToday = dateStr === todayStr;
+
+// Get attendance status
+let attendance = calendarAttendanceData[dateStr];
+
+// Check if user has applied for leave on this date
+if (userLeaveRequests[dateStr]) {
+attendance = {
+status: 'leave',
+reason: userLeaveRequests[dateStr].reason,
+statusText: userLeaveRequests[dateStr].status === 'approved' ? 'Leave Approved' : 'Pending'
+};
+}
+
+const dayElement = document.createElement('div');
+dayElement.className = 'calendar-day-main';
+
+// Add appropriate classes
+if (isSunday || isSaturday) {
+dayElement.classList.add('weekend');
+}
+
+if (isHoliday) {
+dayElement.classList.add('holiday');
+}
+
+if (isPast && !isToday) {
+dayElement.classList.add('past');
+}
+
+if (isToday) {
+dayElement.classList.add('today');
+}
+
+// Add status classes based on attendance
+if (attendance) {
+if (attendance.status === 'present') {
+dayElement.classList.add('present-day');
+} else if (attendance.status === 'absent') {
+dayElement.classList.add('absent-day');
+} else if (attendance.status === 'leave') {
+dayElement.classList.add('leave-day');
+} else if (attendance.status === 'holiday') {
+dayElement.classList.add('holiday');
+}
+} else if (!isSunday && !isSaturday && !isHoliday) {
+dayElement.classList.add('working-day');
+}
+
+// Day number
+const dayNumber = document.createElement('div');
+dayNumber.className = 'calendar-day-number';
+dayNumber.textContent = day;
+
+// Add + button for future dates that are not weekends/holidays
+if (!isPast && !isHoliday && !isSunday && !isSaturday && !userLeaveRequests[dateStr]) {
+const addButton = document.createElement('button');
+addButton.className = 'calendar-day-add';
+addButton.innerHTML = '<i class="fas fa-plus"></i>';
+addButton.title = 'Apply Leave for this date';
+addButton.onclick = function(e) {
+e.stopPropagation();
+openLeaveFormForDate(dateStr);
+};
+dayNumber.appendChild(addButton);
+}
+
+dayElement.appendChild(dayNumber);
+
+// Holiday name if applicable
+if (isHoliday) {
+let holidayName = '';
+if (holidays.includes(dateStr)) {
+// Find holiday name
+if (dateStr === '2026-01-01') holidayName = 'New Year';
+else if (dateStr === '2026-01-26') holidayName = 'Republic Day';
+else if (dateStr === '2026-03-29') holidayName = 'Good Friday';
+else if (dateStr === '2026-08-15') holidayName = 'Independence Day';
+else if (dateStr === '2026-10-02') holidayName = 'Gandhi Jayanti';
+else if (dateStr === '2026-12-25') holidayName = 'Christmas';
+} else if (companyHolidays.includes(dateStr)) {
+if (dateStr === '2026-01-15') holidayName = 'Company Day';
+else if (dateStr === '2026-05-01') holidayName = 'Labour Day';
+else if (dateStr === '2026-10-31') holidayName = 'Diwali';
+}
+
+if (holidayName) {
+const holidayElement = document.createElement('div');
+holidayElement.className = 'calendar-day-holiday-name';
+holidayElement.textContent = holidayName;
+dayElement.appendChild(holidayElement);
+}
+}
+
+// Attendance status
+if (attendance) {
+const statusElement = document.createElement('div');
+statusElement.className = `calendar-day-status ${attendance.status}`;
+
+if (attendance.status === 'holiday') {
+statusElement.textContent = attendance.name || 'Holiday';
+} else if (attendance.status === 'leave') {
+if (attendance.statusText) {
+statusElement.textContent = attendance.statusText;
+} else {
+statusElement.textContent = 'Leave';
+}
+} else if (attendance.status === 'absent') {
+statusElement.textContent = 'Absent';
+} else if (attendance.status === 'present') {
+statusElement.textContent = 'Present';
+}
+
+dayElement.appendChild(statusElement);
+}
+
+calendarGrid.appendChild(dayElement);
+}
+}
+
+function openLeaveFormForDate(dateStr) {
+// Set the date in the leave form
+const date = new Date(dateStr);
+const formattedDate = date.toLocaleDateString('en-US', {
+weekday: 'long',
+year: 'numeric',
+month: 'long',
+day: 'numeric'
+});
+
+// Open the leave form
+openApplyLeavePopup();
+
+// Reset form first
+document.getElementById('applyLeaveForm').reset();
+document.getElementById('leaveFileName').textContent = 'Click to upload file';
+
+// Set the selected date
+leaveSelectedDates = [dateStr];
+currentLeaveDuration = 'full_day';
+
+// Set leave duration to full day by default
+document.getElementById('leaveDuration').value = 'full_day';
+
+// Update the display
+updateLeaveSummaryMainForm();
+
+// Enable the submit button since we have a date selected
+document.getElementById('submitLeaveBtn').disabled = false;
+
+// Show leave summary
+document.getElementById('leaveSummaryCompact').style.display = 'block';
+
+// Update small calendar to show selected date
+smallCalendarMonth = date.getMonth();
+smallCalendarYear = date.getFullYear();
+generateSmallCalendar();
+
+// Show success message
+showSuccessPopup(
+'Date Selected!',
+`You can now complete your leave application for ${formattedDate}. Please fill in the leave details and click "Apply for Leave".`
+);
+}
+
+function updateUpcomingHolidays() {
+const holidayList = document.getElementById('upcoming-holidays-list');
+holidayList.innerHTML = '';
+
+const today = new Date();
+
+// Filter and sort upcoming holidays
+const upcoming = upcomingHolidaysList
+.filter(holiday => {
+const holidayDate = new Date(holiday.date);
+return holidayDate >= today;
+})
+.sort((a, b) => new Date(a.date) - new Date(b.date))
+.slice(0, 5);
+
+if (upcoming.length === 0) {
+holidayList.innerHTML = '<div style="text-align: center; color: var(--dark-text-secondary); font-size: 0.8rem; padding: 1rem;">No upcoming holidays</div>';
+return;
+}
+
+upcoming.forEach(holiday => {
+const holidayDate = new Date(holiday.date);
+const today = new Date();
+const diffTime = Math.abs(holidayDate - today);
+const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+const holidayItem = document.createElement('div');
+holidayItem.className = 'holiday-item-main';
+
+const formattedDate = holidayDate.toLocaleDateString('en-US', {
+month: 'short',
+day: 'numeric',
+year: 'numeric'
+});
+
+holidayItem.innerHTML = `
+<div class="holiday-date-main">${formattedDate}</div>
+<div class="holiday-details-main">
+    <div class="holiday-title-main">${holiday.name}</div>
+    <div class="holiday-type-main">${holiday.type}</div>
+</div>
+<div class="days-away-main">${diffDays} day${diffDays !== 1 ? 's' : ''}</div>
+`;
+
+holidayList.appendChild(holidayItem);
+});
+}
+
+function prevCalendarMonth() {
+currentCalendarMonth--;
+if (currentCalendarMonth < 0) {
+currentCalendarMonth = 11;
+currentCalendarYear--;
+}
+generateMainCalendar();
+}
+
+function nextCalendarMonth() {
+currentCalendarMonth++;
+if (currentCalendarMonth > 11) {
+currentCalendarMonth = 0;
+currentCalendarYear++;
+}
+generateMainCalendar();
+}
+
+function goToToday() {
+const today = new Date();
+currentCalendarMonth = today.getMonth();
+currentCalendarYear = today.getFullYear();
+generateMainCalendar();
+}
+
+// ================= CALENDAR POPUP FUNCTIONS =================
+let popupCalendarMonth = new Date().getMonth();
+let popupCalendarYear = new Date().getFullYear();
+
+function generatePopupCalendar() {
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Update calendar title
+document.getElementById('popup-calendar-month-year').textContent =
+`${monthNames[popupCalendarMonth]} ${popupCalendarYear}`;
+
+const firstDay = new Date(popupCalendarYear, popupCalendarMonth, 1);
+const lastDay = new Date(popupCalendarYear, popupCalendarMonth + 1, 0);
+const daysInMonth = lastDay.getDate();
+const startingDay = firstDay.getDay();
+
+const today = new Date();
+const todayStr = today.toISOString().split('T')[0];
+
+const calendarGrid = document.getElementById('popup-calendar');
+
+// Clear existing content
+calendarGrid.innerHTML = '';
+
+// Day headers
+const dayHeaders = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+dayHeaders.forEach((day, index) => {
+const dayHeader = document.createElement('div');
+dayHeader.className = 'calendar-day-header';
+if (index === 0 || index === 6) {
+dayHeader.classList.add('weekend');
+}
+dayHeader.textContent = day.substring(0, 3);
+calendarGrid.appendChild(dayHeader);
+});
+
+// Empty cells for days before the first day of the month
+for (let i = 0; i < startingDay; i++) {
+const emptyDay = document.createElement('div');
+emptyDay.className = 'calendar-day-main';
+emptyDay.style.background = 'transparent';
+emptyDay.style.border = 'none';
+calendarGrid.appendChild(emptyDay);
+}
+
+// Days of the month
+for (let day = 1; day <= daysInMonth; day++) {
+const dateStr = `${popupCalendarYear}-${String(popupCalendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+const dateObj = new Date(popupCalendarYear, popupCalendarMonth, day);
+const dayOfWeek = dateObj.getDay();
+
+// Check if it's a holiday
+const isHoliday = holidays.includes(dateStr) || companyHolidays.includes(dateStr);
+const isSunday = dayOfWeek === 0;
+const isSaturday = dayOfWeek === 6;
+const isPast = dateObj < new Date(new Date().setHours(0,0,0,0));
+const isToday = dateStr === todayStr;
+
+// Get attendance status
+let attendance = calendarAttendanceData[dateStr];
+
+// Check if user has applied for leave on this date
+if (userLeaveRequests[dateStr]) {
+attendance = {
+status: 'leave',
+reason: userLeaveRequests[dateStr].reason,
+statusText: userLeaveRequests[dateStr].status === 'approved' ? 'Leave Approved' : 'Pending'
+};
+}
+
+const dayElement = document.createElement('div');
+dayElement.className = 'calendar-day-main';
+
+// Add appropriate classes
+if (isSunday || isSaturday) {
+dayElement.classList.add('weekend');
+}
+
+if (isHoliday) {
+dayElement.classList.add('holiday');
+}
+
+if (isPast && !isToday) {
+dayElement.classList.add('past');
+}
+
+if (isToday) {
+dayElement.classList.add('today');
+}
+
+// Add status classes based on attendance
+if (attendance) {
+if (attendance.status === 'present') {
+dayElement.classList.add('present-day');
+} else if (attendance.status === 'absent') {
+dayElement.classList.add('absent-day');
+} else if (attendance.status === 'leave') {
+dayElement.classList.add('leave-day');
+} else if (attendance.status === 'holiday') {
+dayElement.classList.add('holiday');
+}
+} else if (!isSunday && !isSaturday && !isHoliday) {
+dayElement.classList.add('working-day');
+}
+
+// Day number
+const dayNumber = document.createElement('div');
+dayNumber.className = 'calendar-day-number';
+dayNumber.textContent = day;
+
+// Add + button for future dates that are not weekends/holidays
+if (!isPast && !isHoliday && !isSunday && !isSaturday && !userLeaveRequests[dateStr]) {
+const addButton = document.createElement('button');
+addButton.className = 'calendar-day-add';
+addButton.innerHTML = '<i class="fas fa-plus"></i>';
+addButton.title = 'Apply Leave for this date';
+addButton.onclick = function(e) {
+e.stopPropagation();
+openLeaveFormForDate(dateStr);
+closeCalendarPopup();
+};
+dayNumber.appendChild(addButton);
+}
+
+dayElement.appendChild(dayNumber);
+
+// Holiday name if applicable
+if (isHoliday) {
+let holidayName = '';
+if (holidays.includes(dateStr)) {
+// Find holiday name
+if (dateStr === '2026-01-01') holidayName = 'New Year';
+else if (dateStr === '2026-01-26') holidayName = 'Republic Day';
+else if (dateStr === '2026-03-29') holidayName = 'Good Friday';
+else if (dateStr === '2026-08-15') holidayName = 'Independence Day';
+else if (dateStr === '2026-10-02') holidayName = 'Gandhi Jayanti';
+else if (dateStr === '2026-12-25') holidayName = 'Christmas';
+} else if (companyHolidays.includes(dateStr)) {
+if (dateStr === '2026-01-15') holidayName = 'Company Day';
+else if (dateStr === '2026-05-01') holidayName = 'Labour Day';
+else if (dateStr === '2026-10-31') holidayName = 'Diwali';
+}
+
+if (holidayName) {
+const holidayElement = document.createElement('div');
+holidayElement.className = 'calendar-day-holiday-name';
+holidayElement.textContent = holidayName;
+dayElement.appendChild(holidayElement);
+}
+}
+
+// Attendance status
+if (attendance) {
+const statusElement = document.createElement('div');
+statusElement.className = `calendar-day-status ${attendance.status}`;
+
+if (attendance.status === 'holiday') {
+statusElement.textContent = attendance.name || 'Holiday';
+} else if (attendance.status === 'leave') {
+if (attendance.statusText) {
+statusElement.textContent = attendance.statusText;
+} else {
+statusElement.textContent = 'Leave';
+}
+} else if (attendance.status === 'absent') {
+statusElement.textContent = 'Absent';
+} else if (attendance.status === 'present') {
+statusElement.textContent = 'Present';
+}
+
+dayElement.appendChild(statusElement);
+}
+
+calendarGrid.appendChild(dayElement);
+}
+}
+
+function updatePopupHolidays() {
+const holidayList = document.getElementById('popup-upcoming-holidays-list');
+holidayList.innerHTML = '';
+
+const today = new Date();
+
+// Filter and sort upcoming holidays
+const upcoming = upcomingHolidaysList
+.filter(holiday => {
+const holidayDate = new Date(holiday.date);
+return holidayDate >= today;
+})
+.sort((a, b) => new Date(a.date) - new Date(b.date))
+.slice(0, 3);
+
+if (upcoming.length === 0) {
+holidayList.innerHTML = '<div style="text-align: center; color: var(--dark-text-secondary); font-size: 0.8rem; padding: 1rem;">No upcoming holidays</div>';
+return;
+}
+
+upcoming.forEach(holiday => {
+const holidayDate = new Date(holiday.date);
+const today = new Date();
+const diffTime = Math.abs(holidayDate - today);
+const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+const holidayItem = document.createElement('div');
+holidayItem.className = 'holiday-item-main';
+
+const formattedDate = holidayDate.toLocaleDateString('en-US', {
+month: 'short',
+day: 'numeric',
+year: 'numeric'
+});
+
+holidayItem.innerHTML = `
+<div class="holiday-date-main">${formattedDate}</div>
+<div class="holiday-details-main">
+    <div class="holiday-title-main">${holiday.name}</div>
+    <div class="holiday-type-main">${holiday.type}</div>
+</div>
+<div class="days-away-main">${diffDays} day${diffDays !== 1 ? 's' : ''}</div>
+`;
+
+holidayList.appendChild(holidayItem);
+});
+}
+
+function updatePopupLeaveStatistics() {
+document.getElementById('popupLeavesTaken').textContent = employeeLeaveStats.leavesTaken;
+document.getElementById('popupTotalLeaves').textContent = employeeLeaveStats.totalLeaves;
+document.getElementById('popupAvailableLeaves').textContent = employeeLeaveStats.availableLeaves;
+}
+
+function prevCalendarMonthPopup() {
+popupCalendarMonth--;
+if (popupCalendarMonth < 0) {
+popupCalendarMonth = 11;
+popupCalendarYear--;
+}
+generatePopupCalendar();
+}
+
+function nextCalendarMonthPopup() {
+popupCalendarMonth++;
+if (popupCalendarMonth > 11) {
+popupCalendarMonth = 0;
+popupCalendarYear++;
+}
+generatePopupCalendar();
+}
+
+function goToTodayPopup() {
+const today = new Date();
+popupCalendarMonth = today.getMonth();
+popupCalendarYear = today.getFullYear();
+generatePopupCalendar();
+}
+
+// ================= LEAVE FORM FUNCTIONS =================
+let leaveSelectedDates = [];
+let currentLeaveDuration = '';
+let currentHalfDayType = 'first_half';
+let smallCalendarMonth = new Date().getMonth();
+let smallCalendarYear = new Date().getFullYear();
+
+function isSunday(date) {
+return date.getDay() === 0;
+}
+
+function isHoliday(dateStr) {
+return holidays.includes(dateStr) || companyHolidays.includes(dateStr);
+}
+
+function isNonSelectable(dateStr, dateObj) {
+const today = new Date();
+today.setHours(0,0,0,0);
+
+// Past dates are non-selectable
+if (dateObj < today) {
+return true;
+}
+
+// Sundays and holidays are non-selectable
+if (isSunday(dateObj) || isHoliday(dateStr)) {
+return true;
+}
+
+return false;
+}
+
+function openApplyLeavePopup() {
+const popup = document.getElementById('applyLeavePopup');
+const overlay = document.getElementById('applyLeaveOverlay');
+
+// Reset form completely
+document.getElementById('applyLeaveForm').reset();
+document.getElementById('leaveFileName').textContent = 'Click to upload file';
+
+// Reset selection
+leaveSelectedDates = [];
+currentLeaveDuration = '';
+currentHalfDayType = 'first_half';
+
+// Reset UI elements
+document.getElementById('submitLeaveBtn').disabled = true;
+document.getElementById('leaveSummaryCompact').style.display = 'none';
+document.getElementById('halfDaySelector').classList.remove('active');
+
+// Update leave balance
+updateLeaveBalance();
+
+// Generate small calendar
+generateSmallCalendar();
+
+// Update leave summary
+updateLeaveSummaryMainForm();
+
+popup.classList.add('active');
+overlay.classList.add('active');
+}
+
+function closeApplyLeavePopup() {
+document.getElementById('applyLeavePopup').classList.remove('active');
+document.getElementById('applyLeaveOverlay').classList.remove('active');
+
+// Reset form completely when closed
+setTimeout(() => {
+document.getElementById('applyLeaveForm').reset();
+document.getElementById('leaveFileName').textContent = 'Click to upload file';
+leaveSelectedDates = [];
+currentLeaveDuration = '';
+document.getElementById('leaveSummaryCompact').style.display = 'none';
+document.getElementById('submitLeaveBtn').disabled = true;
+document.getElementById('halfDaySelector').classList.remove('active');
+}, 300);
+}
+
+function updateLeaveBalance() {
+const leaveType = document.getElementById('leaveType').value;
+const balanceText = document.getElementById('leaveBalanceText');
+
+const balances = {
+'earned': '13 days',
+'sick': '10 days',
+'casual': '4 days',
+'maternity': '180 days',
+'paternity': '15 days',
+'bereavement': '5 days',
+'compensatory': '0 days'
+};
+
+if (leaveType && balances[leaveType]) {
+balanceText.textContent = `Balance: ${balances[leaveType]}`;
+balanceText.style.color = 'var(--success)';
+} else {
+balanceText.textContent = 'Balance: 0 days';
+balanceText.style.color = 'var(--dark-text-secondary)';
+}
+}
+
+function handleLeaveDurationChange() {
+const leaveType = document.getElementById('leaveType').value;
+const leaveDuration = document.getElementById('leaveDuration').value;
+const halfDaySelector = document.getElementById('halfDaySelector');
+
+// Check if leave type is selected
+if (!leaveType) {
+alert('Please select a leave type first.');
+document.getElementById('leaveDuration').value = '';
+return;
+}
+
+// Clear previously selected dates if duration changes
+if (currentLeaveDuration !== leaveDuration) {
+leaveSelectedDates = [];
+document.getElementById('leaveSummaryCompact').style.display = 'none';
+document.getElementById('submitLeaveBtn').disabled = true;
+
+// Regenerate calendar to clear selected dates
+generateSmallCalendar();
+}
+
+currentLeaveDuration = leaveDuration;
+
+// Show/hide half day selector
+if (leaveDuration === 'half_day') {
+halfDaySelector.classList.add('active');
+} else {
+halfDaySelector.classList.remove('active');
+}
+
+// Disable submit button until dates are selected
+document.getElementById('submitLeaveBtn').disabled = true;
+}
+
+// Function to generate small calendar for leave form
+function generateSmallCalendar() {
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+'July', 'August', 'September', 'October', 'November', 'December'];
+
+// Update calendar title
+document.getElementById('smallCalendarMonthYear').textContent =
+`${monthNames[smallCalendarMonth]} ${smallCalendarYear}`;
+
+const firstDay = new Date(smallCalendarYear, smallCalendarMonth, 1);
+const lastDay = new Date(smallCalendarYear, smallCalendarMonth + 1, 0);
+const daysInMonth = lastDay.getDate();
+const startingDay = firstDay.getDay();
+
+const today = new Date();
+const todayStr = today.toISOString().split('T')[0];
+
+const calendarGrid = document.getElementById('small-calendar-grid');
+
+// Clear existing content
+calendarGrid.innerHTML = '';
+
+// Day headers
+const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+dayHeaders.forEach((day, index) => {
+const dayHeader = document.createElement('div');
+dayHeader.className = 'small-calendar-day-header';
+if (index === 0 || index === 6) {
+dayHeader.classList.add('weekend');
+}
+dayHeader.textContent = day;
+calendarGrid.appendChild(dayHeader);
+});
+
+// Empty cells for days before the first day of the month
+for (let i = 0; i < startingDay; i++) {
+const emptyDay = document.createElement('div');
+emptyDay.className = 'small-calendar-day';
+emptyDay.style.background = 'transparent';
+emptyDay.style.border = 'none';
+calendarGrid.appendChild(emptyDay);
+}
+
+// Days of the month
+for (let day = 1; day <= daysInMonth; day++) {
+const dateStr = `${smallCalendarYear}-${String(smallCalendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+const dateObj = new Date(smallCalendarYear, smallCalendarMonth, day);
+const dayOfWeek = dateObj.getDay();
+const isSelected = leaveSelectedDates.includes(dateStr);
+const isPast = dateObj < new Date(new Date().setHours(0,0,0,0));
+const isToday = dateStr === todayStr;
+const isHolidayDate = isHoliday(dateStr);
+const isSunday = dayOfWeek === 0;
+const isSaturday = dayOfWeek === 6;
+const isNonSelectableDate = isNonSelectable(dateStr, dateObj);
+
+// Get attendance status for this date
+const attendance = calendarAttendanceData[dateStr];
+// Check if user has applied for leave on this date
+const userLeave = userLeaveRequests[dateStr];
+
+const dayElement = document.createElement('div');
+dayElement.className = 'small-calendar-day';
+
+// Add appropriate classes
+if (isSelected) {
+dayElement.classList.add('selected');
+}
+
+if (isSunday || isSaturday) {
+dayElement.classList.add('weekend');
+}
+
+if (isHolidayDate) {
+dayElement.classList.add('holiday');
+}
+
+if (isToday) {
+dayElement.classList.add('today');
+}
+
+if (isNonSelectableDate) {
+dayElement.classList.add('non-selectable');
+}
+
+// Add attendance status class
+if (attendance) {
+dayElement.classList.add(attendance.status);
+}
+
+// If user has leave on this date
+if (userLeave) {
+dayElement.classList.add('leave');
+}
+
+// Day number
+const dayNumber = document.createElement('div');
+dayNumber.textContent = day;
+dayElement.appendChild(dayNumber);
+
+// Add status dot if there's attendance data or user leave
+if (attendance || userLeave) {
+const dot = document.createElement('div');
+dot.className = 'small-calendar-day-dot';
+dayElement.appendChild(dot);
+}
+
+// Make selectable if not non-selectable
+if (!isNonSelectableDate) {
+dayElement.style.cursor = 'pointer';
+dayElement.onclick = function() {
+selectLeaveDateFromSmallCalendar(dateStr);
+};
+} else {
+dayElement.style.cursor = 'not-allowed';
+
+// Add title to indicate why it's non-selectable
+if (isSunday) {
+dayElement.title = 'Sunday - Not selectable';
+} else if (isHolidayDate) {
+dayElement.title = 'Holiday - Not selectable';
+} else if (isPast) {
+dayElement.title = 'Cannot select past dates';
+}
+}
+
+calendarGrid.appendChild(dayElement);
+}
+}
+
+// Function to select leave date from small calendar
+function selectLeaveDateFromSmallCalendar(dateStr) {
+const leaveDuration = document.getElementById('leaveDuration').value;
+
+// Check if leave duration is selected
+if (!leaveDuration) {
+alert('Please select a leave duration first.');
+return;
+}
+
+// For single day selection (full day or half day)
+if (leaveDuration === 'full_day' || leaveDuration === 'half_day') {
+// Replace existing selection
+leaveSelectedDates = [dateStr];
+} else if (leaveDuration === 'multiple_days') {
+// For multiple days, add/remove from selection
+const index = leaveSelectedDates.indexOf(dateStr);
+if (index === -1) {
+leaveSelectedDates.push(dateStr);
+} else {
+leaveSelectedDates.splice(index, 1);
+}
+}
+
+// Update calendar and summary
+generateSmallCalendar();
+updateLeaveSummaryMainForm();
+}
+
+// Small calendar navigation functions
+function prevSmallCalendarMonth() {
+smallCalendarMonth--;
+if (smallCalendarMonth < 0) {
+smallCalendarMonth = 11;
+smallCalendarYear--;
+}
+generateSmallCalendar();
+}
+
+function nextSmallCalendarMonth() {
+smallCalendarMonth++;
+if (smallCalendarMonth > 11) {
+smallCalendarMonth = 0;
+smallCalendarYear++;
+}
+generateSmallCalendar();
+}
+
+function goToTodaySmallCalendar() {
+const today = new Date();
+smallCalendarMonth = today.getMonth();
+smallCalendarYear = today.getFullYear();
+generateSmallCalendar();
+}
+
+function updateLeaveSummaryMainForm() {
+const leaveSummary = document.getElementById('leaveSummaryCompact');
+const submitBtn = document.getElementById('submitLeaveBtn');
+
+if (leaveSelectedDates.length === 0) {
+leaveSummary.style.display = 'none';
+submitBtn.disabled = true;
+return;
+}
+
+// Update leave count badge
+const leaveCount = leaveSelectedDates.length;
+document.getElementById('effectiveLeavesCount').textContent =
+leaveCount + ' day' + (leaveCount !== 1 ? 's' : '');
+
+// Update selected dates display in main form
+const selectedDatesList = document.getElementById('selectedDatesList');
+
+if (leaveSelectedDates.length === 0) {
+selectedDatesList.innerHTML = '<span style="color: var(--dark-text-secondary); font-size: 0.7rem;">No dates selected</span>';
+return;
+}
+
+// Sort dates
+leaveSelectedDates.sort();
+
+// Display dates
+let datesHtml = '';
+leaveSelectedDates.forEach(dateStr => {
+const date = new Date(dateStr);
+const formattedDate = date.toLocaleDateString('en-US', {
+month: 'short',
+day: 'numeric',
+year: 'numeric'
+});
+datesHtml += `<div class="selected-date-tag">${formattedDate}</div>`;
+});
+
+selectedDatesList.innerHTML = datesHtml;
+
+// Enable/disable submit button
+submitBtn.disabled = leaveSelectedDates.length === 0;
+
+leaveSummary.style.display = 'block';
+}
+
+// ================= EMPLOYEE LEAVE MANAGER (SINGLE INSTANCE) =================
+class EmployeeLeaveManager {
+constructor() {
+this.employeeId = this.getCurrentEmployeeId();
+this.leaveRequests = [];
+this.init();
+}
+
+getCurrentEmployeeId() {
+const empIdElement = document.getElementById('currentEmployeeId') ||
+document.getElementById('employeeIdData');
+if (empIdElement) {
+return empIdElement.value;
+}
+const profileId = document.querySelector('.info-value[th\\:text="${employee.employeeId}"]')?.textContent;
+if (profileId && profileId !== '-') return profileId;
+return 'EMP001';
+}
+
+init() {
+this.loadLeaveRequests();
+this.renderAll();
+
+window.addEventListener('storage', (e) => {
+if (e.key === 'menti_leave_requests') {
+console.log('Leave data updated by HR, refreshing...');
+this.loadLeaveRequests();
+this.renderAll();
+}
+});
+}
+
+loadLeaveRequests() {
+const stored = localStorage.getItem('menti_leave_requests');
+if (stored) {
+const allRequests = JSON.parse(stored);
+this.leaveRequests = allRequests.filter(req =>
+req.employeeId === this.employeeId ||
+req.employeeId === undefined ||
+req.employeeId === 'EMP001'
+);
+} else {
+this.leaveRequests = [];
+}
+}
+
+getPendingRequests() {
+return this.leaveRequests.filter(req => req.status === 'pending');
+}
+
+getHistoryRequests() {
+return this.leaveRequests.filter(req =>
+req.status === 'approved' || req.status === 'rejected'
+);
+}
+
+renderAll() {
+this.renderPendingTable();
+this.renderHistoryTable();
+this.updateLeaveStatistics();
+}
+
+renderPendingTable() {
+const tbody = document.getElementById('pending-leave-requests');
+const emptyState = document.getElementById('emptyLeaveState');
+const pending = this.getPendingRequests();
+
+if (!tbody) return;
+
+if (pending.length === 0) {
+tbody.innerHTML = '';
+if (emptyState) emptyState.style.display = 'block';
+return;
+}
+
+if (emptyState) emptyState.style.display = 'none';
+pending.sort((a, b) => new Date(b.appliedDate) - new Date(a.appliedDate));
+tbody.innerHTML = pending.map(req => this.createPendingRow(req)).join('');
+}
+
+createPendingRow(req) {
+const startDate = new Date(req.startDate).toLocaleDateString('en-US', {
+month: 'short', day: 'numeric', year: 'numeric'
+});
+const endDate = new Date(req.endDate).toLocaleDateString('en-US', {
+month: 'short', day: 'numeric', year: 'numeric'
+});
+const duration = req.totalDays + ' day' + (req.totalDays > 1 ? 's' : '');
+const reasonPreview = req.reason ? (req.reason.substring(0, 30) + (req.reason.length > 30 ? '...' : '')) : '';
+
+return `
+<tr data-leave-id="${req.id}">
+    <td>${req.id}</td>
+    <td>${req.leaveTypeName || req.leaveType}</td>
+    <td>${startDate}</td>
+    <td>${endDate}</td>
+    <td>${duration}</td>
+    <td>${reasonPreview}</td>
+    <td><span class="status-badge pending">Pending</span></td>
+    <td>
+        <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;"
+                onclick="employeeLeaveManager.cancelLeaveRequest('${req.id}')">
+            <i class="fas fa-times"></i> Cancel
+        </button>
+    </td>
+</tr>
+`;
+}
+
+renderHistoryTable() {
+const historyTable = document.querySelectorAll('#apply-leave table')[1];
+if (!historyTable) return;
+
+const historyTbody = historyTable.querySelector('tbody');
+const history = this.getHistoryRequests();
+
+if (history.length === 0) {
+historyTbody.innerHTML = `
+<tr>
+    <td colspan="8" style="text-align: center; padding: 2rem; color: var(--dark-text-secondary);">
+        <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+        No leave history found
+    </td>
+</tr>
+`;
+return;
+}
+
+history.sort((a, b) => {
+const dateA = new Date(a.approvedDate || a.rejectedDate || a.appliedDate);
+const dateB = new Date(b.approvedDate || b.rejectedDate || b.appliedDate);
+return dateB - dateA;
+});
+
+historyTbody.innerHTML = history.map(req => this.createHistoryRow(req)).join('');
+}
+
+createHistoryRow(req) {
+const startDate = new Date(req.startDate).toLocaleDateString('en-US', {
+month: 'short', day: 'numeric', year: 'numeric'
+});
+const endDate = new Date(req.endDate).toLocaleDateString('en-US', {
+month: 'short', day: 'numeric', year: 'numeric'
+});
+const duration = req.totalDays + ' day' + (req.totalDays > 1 ? 's' : '');
+const isApproved = req.status === 'approved';
+const statusClass = isApproved ? 'approved' : 'rejected';
+const statusText = isApproved ? 'Approved' : 'Rejected';
+const processedBy = isApproved ? (req.approvedBy || 'HR Manager') : (req.rejectedBy || 'HR Manager');
+const remarks = isApproved ? (req.approvalRemarks || 'Approved') : (req.rejectionReason || 'Rejected');
+
+return `
+<tr>
+    <td>${req.id}</td>
+    <td>${req.leaveTypeName || req.leaveType}</td>
+    <td>${startDate}</td>
+    <td>${endDate}</td>
+    <td>${duration}</td>
+    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+    <td>${processedBy}</td>
+    <td>${remarks}</td>
+</tr>
+`;
+}
+
+updateLeaveStatistics() {
+const approvedLeaves = this.leaveRequests.filter(req => req.status === 'approved');
+const totalUsed = approvedLeaves.reduce((sum, req) => sum + parseFloat(req.totalDays), 0);
+
+const leavesTakenEl = document.getElementById('leavesTaken');
+if (leavesTakenEl) {
+leavesTakenEl.textContent = totalUsed;
+}
+
+const availableEl = document.getElementById('availableLeaves');
+if (availableEl) {
+const total = 15;
+availableEl.textContent = Math.max(0, total - totalUsed);
+}
+}
+
+cancelLeaveRequest(leaveId) {
+if (!confirm('Are you sure you want to cancel this leave request?')) return;
+
+try {
+let allRequests = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+allRequests = allRequests.filter(req => req.id !== leaveId);
+localStorage.setItem('menti_leave_requests', JSON.stringify(allRequests));
+
+this.loadLeaveRequests();
+this.renderAll();
+
+showSuccessPopup('Request Cancelled', 'Your leave request has been cancelled successfully.');
+} catch (e) {
+console.error('Error cancelling:', e);
+}
+}
+
+refresh() {
+this.loadLeaveRequests();
+this.renderAll();
+}
+}
+
+// ================= INITIALIZATION (SINGLE DOMContentLoaded) =================
+let employeeLeaveManager;
+
+document.addEventListener('DOMContentLoaded', function() {
+console.log('Initializing Employee Dashboard...');
+
+// Initialize Leave Manager
+employeeLeaveManager = new EmployeeLeaveManager();
+
+// Tab switching handler
+document.querySelectorAll('.menu-item').forEach(item => {
+item.addEventListener('click', function() {
+const target = this.getAttribute('data-tab');
+if (target === 'attendance' && employeeLeaveManager) {
+setTimeout(() => employeeLeaveManager.refresh(), 100);
+}
+});
+});
+
+// Other initializations...
+initializeAttendanceTab();
+});
+
+// ================= GLOBAL FUNCTIONS =================
+function cancelLeaveRequest(leaveId) {
+if (typeof employeeLeaveManager !== 'undefined' && employeeLeaveManager) {
+employeeLeaveManager.cancelLeaveRequest(leaveId);
+} else {
+console.error('Leave manager not initialized');
+alert('System error: Leave manager not loaded. Please refresh the page.');
+}
+}
+
+function submitLeaveFormFromPopup() {
+const leaveType = document.getElementById('leaveType').value;
+const leaveDuration = document.getElementById('leaveDuration').value;
+const halfDayType = leaveDuration === 'half_day' ? document.getElementById('halfDayType').value : '';
+const reason = document.getElementById('leaveReason').value;
+const contactNumber = document.getElementById('contactNumber').value;
+
+// ✅ Get ACTUAL employee details from hidden fields (not hardcoded)
+const employeeId = document.getElementById('currentEmployeeId')?.value ||
+document.getElementById('employeeIdData')?.value ||
+'EMP001';
+
+const firstName = document.getElementById('currentEmployeeFirstName')?.value || '';
+const lastName = document.getElementById('currentEmployeeLastName')?.value || '';
+const employeeName = (firstName + ' ' + lastName).trim() || 'Unknown Employee';
+
+const department = document.getElementById('currentEmployeeDepartment')?.value || 'General';
+
+// Validate required fields
+if (!leaveType) {
+alert('Please select a leave type.');
+return;
+}
+
+if (leaveSelectedDates.length === 0) {
+alert('Please select at least one date for leave.');
+return;
+}
+
+// Create leave request object with REAL employee data
+const leaveId = 'LV-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+
+const leaveRequest = {
+id: leaveId,  // Use 'id' to match your existing structure
+employeeId: employeeId,
+employeeName: employeeName,
+leaveType: leaveType,
+leaveTypeName: getLeaveTypeName(leaveType),
+startDate: leaveSelectedDates[0],
+endDate: leaveSelectedDates[leaveSelectedDates.length - 1],
+totalDays: calculateEffectiveLeaveDays(leaveSelectedDates, leaveDuration, halfDayType),
+halfDayType: halfDayType,
+reason: reason,
+contactNumber: contactNumber,
+status: 'pending',
+appliedDate: new Date().toISOString().split('T')[0]
+};
+
+// Save to Backend
+fetch('/api/leaves/request', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(leaveRequest)
+})
+.then(response => response.json())
+.then(data => {
+if (data.success) {
+// Also save to localStorage for immediate UI update
+saveLeaveRequestToLocalStorage(leaveRequest);
+showSuccessPopup('Success', 'Leave request submitted!');
+closeApplyLeavePopup();
+
+// Refresh the leave manager to show updated data
+if (employeeLeaveManager) {
+employeeLeaveManager.refresh();
+}
+}
+})
+.catch(error => {
+console.error('Error:', error);
+// Still save to localStorage as fallback
+saveLeaveRequestToLocalStorage(leaveRequest);
+showSuccessPopup('Success', 'Leave request submitted locally!');
+closeApplyLeavePopup();
+
+if (employeeLeaveManager) {
+employeeLeaveManager.refresh();
+}
+});
+}
+
+// Helper function to calculate effective leave days
+function calculateEffectiveLeaveDays(dates, duration, halfDayType) {
+if (duration === 'half_day') {
+return 0.5;
+} else if (duration === 'full_day') {
+return 1;
+} else {
+return dates.length;
+}
+}
+
+// Helper function to get leave type name
+function getLeaveTypeName(leaveType) {
+const leaveTypes = {
+'earned': 'Earned Leave',
+'sick': 'Sick Leave',
+'casual': 'Casual Leave',
+'maternity': 'Maternity Leave',
+'paternity': 'Paternity Leave',
+'bereavement': 'Bereavement Leave',
+'compensatory': 'Compensatory Leave'
+};
+return leaveTypes[leaveType] || leaveType;
+}
+
+// Save leave request to LocalStorage
+function saveLeaveRequestToLocalStorage(leaveRequest) {
+// Get existing requests or initialize empty array
+let leaveRequests = JSON.parse(localStorage.getItem('menti_leave_requests')) || [];
+
+// Add new request
+leaveRequests.push(leaveRequest);
+
+// Save back to LocalStorage
+localStorage.setItem('menti_leave_requests', JSON.stringify(leaveRequests));
+
+console.log('Leave request saved to LocalStorage:', leaveRequest);
+}
+
+// ================= LEAVE TYPE HELPER FUNCTION =================
+function getLeaveTypeId(leaveType) {
+// Map leave type values to IDs (you might need to adjust these based on your database)
+const leaveTypeMap = {
+'earned': 1,      // Assuming earned leave has ID 1 in your leave_types table
+'sick': 2,        // Assuming sick leave has ID 2
+'casual': 3,      // Assuming casual leave has ID 3
+'maternity': 4,   // Assuming maternity leave has ID 4
+'paternity': 5,   // Assuming paternity leave has ID 5
+'bereavement': 6, // Assuming bereavement leave has ID 6
+'compensatory': 7 // Assuming compensatory leave has ID 7
+};
+
+return leaveTypeMap[leaveType] || null;
+}
+
+// ================= SUCCESS POPUP FUNCTIONS =================
+function showSuccessPopup(title, message) {
+const successPopup = document.getElementById('successPopup');
+const successPopupTitle = document.getElementById('successPopupTitle');
+const successPopupMessage = document.getElementById('successPopupMessage');
+
+successPopupTitle.textContent = title;
+successPopupMessage.textContent = message;
+
+successPopup.classList.add('show');
+
+// Auto-hide after 5 seconds
+setTimeout(() => {
+if (successPopup.classList.contains('show')) {
+closeSuccessPopup();
+}
+}, 5000);
+}
+
+function closeSuccessPopup() {
+const successPopup = document.getElementById('successPopup');
+successPopup.classList.remove('show');
+}
+
+// ================= REGULARIZATION FUNCTIONS =================
+function openRegularizationPopup() {
+const popup = document.getElementById('regularizationPopup');
+const overlay = document.getElementById('regularizationOverlay');
+
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('regularizationDate').value = today;
+
+document.getElementById('regularizationForm').reset();
+document.getElementById('fileName').textContent = 'Click to upload file';
+
+toggleTimeFields();
+
+popup.classList.add('active');
+overlay.classList.add('active');
+}
+
+function closeRegularizationPopup() {
+document.getElementById('regularizationPopup').classList.remove('active');
+document.getElementById('regularizationOverlay').classList.remove('active');
+}
+
+function toggleTimeFields() {
+const requestType = document.getElementById('requestType').value;
+const timeFields = document.getElementById('timeFields');
+
+const showTimeFields = [
+'missing_checkin',
+'missing_checkout',
+'both_missing',
+'wrong_time'
+];
+
+if (showTimeFields.includes(requestType)) {
+timeFields.style.display = 'block';
+
+if (requestType === 'missing_checkin' || requestType === 'both_missing') {
+document.getElementById('checkinTime').required = true;
+} else {
+document.getElementById('checkinTime').required = false;
+}
+
+if (requestType === 'missing_checkout' || requestType === 'both_missing') {
+document.getElementById('checkoutTime').required = true;
+} else {
+document.getElementById('checkoutTime').required = false;
+}
+
+if (requestType === 'wrong_time') {
+document.getElementById('checkinTime').required = true;
+document.getElementById('checkoutTime').required = true;
+}
+} else {
+timeFields.style.display = 'none';
+document.getElementById('checkinTime').required = false;
+document.getElementById('checkoutTime').required = false;
+}
+}
+
+// File upload handling
+document.getElementById('supportingDoc').addEventListener('change', function(e) {
+const fileName = e.target.files[0] ? e.target.files[0].name : 'Click to upload file';
+document.getElementById('fileName').textContent = fileName;
+});
+
+function submitRegularizationForm(event) {
+event.preventDefault();
+
+const date = document.getElementById('regularizationDate').value;
+const type = document.getElementById('requestType').value;
+const reason = document.getElementById('regularizationReason').value;
+
+const requestId = 'REQ' + String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+const today = new Date().toISOString().split('T')[0];
+
+const tableBody = document.querySelector('#regularization table tbody');
+const newRow = document.createElement('tr');
+
+const typeLabels = {
+'missing_checkin': 'Missing Check-in',
+'missing_checkout': 'Missing Check-out',
+'both_missing': 'Both Missing',
+'wrong_time': 'Wrong Time Recorded',
+'full_day': 'Full Day Absence',
+'late_mark': 'Remove Late Mark',
+'early_out': 'Remove Early Out Mark'
+};
+
+newRow.innerHTML = `
+<td>${requestId}</td>
+<td>${date}</td>
+<td>${typeLabels[type] || type}</td>
+<td>${reason.substring(0, 50)}${reason.length > 50 ? '...' : ''}</td>
+<td><span class="status-badge pending">Pending</span></td>
+<td>${today}</td>
+<td>
+    <button class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="withdrawRequest('${requestId}')">
+        <i class="fas fa-trash-alt"></i> Withdraw
+    </button>
+</td>
+`;
+
+tableBody.insertBefore(newRow, tableBody.firstChild);
+
+document.getElementById('emptyState').style.display = 'none';
+
+// Show success popup for regularization
+showSuccessPopup(
+'Regularization Request Submitted!',
+`Request ${requestId} has been submitted successfully. It will be reviewed by your manager.`
+);
+
+closeRegularizationPopup();
+
+document.getElementById('regularizationForm').reset();
+
+return false;
+}
+
+function withdrawRequest(requestId) {
+if (confirm(`Are you sure you want to withdraw request ${requestId}?`)) {
+alert(`Request ${requestId} has been withdrawn.`);
+
+const rows = document.querySelectorAll('#regularization table tbody tr');
+rows.forEach(row => {
+if (row.cells[0].textContent === requestId) {
+row.remove();
+}
+});
+
+const pendingRows = document.querySelectorAll('#regularization table tbody tr');
+if (pendingRows.length === 0) {
+document.getElementById('emptyState').style.display = 'block';
+}
+}
+}
+
+// ================= PROFILE PICTURE =================
+function uploadProfilePic(input) {
+if (!input.files || !input.files[0]) return;
+const file = input.files[0];
+const reader = new FileReader();
+reader.onload = function (e) {
+const box = document.getElementById('profilePicBox');
+box.querySelector('img')?.remove();
+box.querySelector('span')?.remove();
+const img = document.createElement('img');
+img.src = e.target.result;
+img.className = 'profile-img';
+box.appendChild(img);
+};
+reader.readAsDataURL(file);
+}
+
+function deleteProfilePic() {
+const box = document.getElementById('profilePicBox');
+box.querySelector('img')?.remove();
+const span = document.createElement('span');
+span.className = 'profile-fallback';
+span.textContent = 'U';
+box.appendChild(span);
+}
+
+// ================= DROPDOWN TOGGLES =================
+function toggleNotificationDropdown(event) {
+event.stopPropagation();
+const dropdown = document.getElementById('notificationDropdownMenu');
+const profileDropdown = document.getElementById('profileDropdownMenu');
+profileDropdown.classList.remove('show');
+dropdown.classList.toggle('show');
+event.currentTarget.setAttribute('aria-expanded', dropdown.classList.contains('show'));
+}
+
+function toggleProfileDropdown(event) {
+event.stopPropagation();
+const dropdown = document.getElementById('profileDropdownMenu');
+const notificationDropdown = document.getElementById('notificationDropdownMenu');
+notificationDropdown.classList.remove('show');
+dropdown.classList.toggle('show');
+event.currentTarget.setAttribute('aria-expanded', dropdown.classList.contains('show'));
+}
+
+// ================= CLOSE DROPDOWNS ON OUTSIDE CLICK =================
+document.addEventListener('click', function(e) {
+const notificationDropdown = document.getElementById('notificationDropdownMenu');
+const profileDropdown = document.getElementById('profileDropdownMenu');
+const notificationTrigger = document.querySelector('.notification-trigger');
+const profileTrigger = document.querySelector('.profile-trigger');
+
+if (!notificationTrigger.contains(e.target) && !notificationDropdown.contains(e.target)) {
+notificationDropdown.classList.remove('show');
+notificationTrigger.setAttribute('aria-expanded', 'false');
+}
+
+if (!profileTrigger.contains(e.target) && !profileDropdown.contains(e.target)) {
+profileDropdown.classList.remove('show');
+profileTrigger.setAttribute('aria-expanded', 'false');
+}
+
+// Close popups
+const regPopup = document.getElementById('regularizationPopup');
+const regOverlay = document.getElementById('regularizationOverlay');
+const leavePopup = document.getElementById('applyLeavePopup');
+const leaveOverlay = document.getElementById('applyLeaveOverlay');
+const calendarPopup = document.getElementById('calendarPopup');
+const calendarOverlay = document.getElementById('calendarOverlay');
+
+if (regPopup.classList.contains('active') &&
+regOverlay.contains(e.target) &&
+!regPopup.contains(e.target)) {
+closeRegularizationPopup();
+}
+
+if (leavePopup.classList.contains('active') &&
+leaveOverlay.contains(e.target) &&
+!leavePopup.contains(e.target)) {
+closeApplyLeavePopup();
+}
+
+if (calendarPopup.classList.contains('active') &&
+calendarOverlay.contains(e.target) &&
+!calendarPopup.contains(e.target)) {
+closeCalendarPopup();
+}
+});
+
+// ================= ESCAPE KEY TO CLOSE DROPDOWNS =================
+document.addEventListener('keydown', function(e) {
+if (e.key === 'Escape') {
+const notificationDropdown = document.getElementById('notificationDropdownMenu');
+const profileDropdown = document.getElementById('profileDropdownMenu');
+const notificationTrigger = document.querySelector('.notification-trigger');
+const profileTrigger = document.querySelector('.profile-trigger');
+const regPopup = document.getElementById('regularizationPopup');
+const leavePopup = document.getElementById('applyLeavePopup');
+const calendarPopup = document.getElementById('calendarPopup');
+const successPopup = document.getElementById('successPopup');
+
+notificationDropdown.classList.remove('show');
+profileDropdown.classList.remove('show');
+notificationTrigger.setAttribute('aria-expanded', 'false');
+profileTrigger.setAttribute('aria-expanded', 'false');
+
+if (regPopup.classList.contains('active')) {
+closeRegularizationPopup();
+}
+
+if (leavePopup.classList.contains('active')) {
+closeApplyLeavePopup();
+}
+
+if (calendarPopup.classList.contains('active')) {
+closeCalendarPopup();
+}
+
+if (successPopup.classList.contains('show')) {
+closeSuccessPopup();
+}
+}
+});
+
+// ================= ACTIVATE PROFILE TAB =================
+function activateProfileTab() {
+document.getElementById('profileDropdownMenu').classList.remove('show');
+document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+
+const profileMenuItem = document.querySelector('[data-tab="profile"]');
+if (profileMenuItem) profileMenuItem.classList.add('active');
+document.getElementById('profile').classList.add('active');
+document.getElementById('recentActivityCard').style.display = 'block';
+document.getElementById('profileCardContainer').style.display = 'block';
+
+document.querySelectorAll('.sub-nav-item').forEach(el => el.classList.remove('active'));
+document.querySelectorAll('.sub-tab-content').forEach(el => el.classList.remove('active'));
+document.querySelector('[data-subtab="personal-info"]').classList.add('active');
+document.getElementById('personal-info').classList.add('active');
+
+currentTab = 'profile';
+}
+
+// ================= DOCUMENT PREVIEW =================
+function viewDocument(documentId, documentType) {
+const isCandidatePage = window.location.pathname.includes('/candidate/');
+const previewUrl = isCandidatePage ? `/candidate/download/${documentId}` : `/onboarding/download/${documentId}`;
+
+document.getElementById('previewTitle').textContent = documentType.replace(/_/g, ' ') + ' - Preview';
+document.getElementById('previewDownloadBtn').href = previewUrl;
+
+const modal = document.getElementById('previewModal');
+modal.style.display = 'flex';
+
+fetch(previewUrl)
+.then(r => {
+if (!r.ok) throw new Error('Document not found');
+return r.blob();
+})
+.then(blob => {
+const contentType = blob.type;
+const contentDiv = document.getElementById('previewContent');
+contentDiv.innerHTML = '';
+
+if (contentType === 'application/pdf') {
+const objectUrl = URL.createObjectURL(blob);
+contentDiv.innerHTML = `<embed src="${objectUrl}" type="application/pdf" width="100%" height="100%" style="border: none; border-radius: 8px;" />`;
+} else if (contentType.startsWith('image/')) {
+const objectUrl = URL.createObjectURL(blob);
+const img = document.createElement('img');
+img.src = objectUrl;
+img.style.maxWidth = '100%';
+img.style.maxHeight = '100%';
+img.style.borderRadius = '8px';
+img.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+contentDiv.appendChild(img);
+} else {
+contentDiv.innerHTML = `
+<div style="text-align: center; color: var(--dark-text-secondary);">
+    <i class="fas fa-file-alt" style="font-size: 48px; margin-bottom: 15px;"></i>
+    <p>This document type cannot be previewed.</p>
+    <p>Please download to view.</p>
+    <a href="${previewUrl}" class="btn-icon btn-icon-download" style="width: auto; padding: 5px 15px; margin-top: 15px; text-decoration: none;">
+        <i class="fas fa-download"></i> Download File
+    </a>
+</div>`;
+}
+})
+.catch(err => {
+document.getElementById('previewContent').innerHTML = `
+<div style="text-align: center; color: var(--danger);">
+    <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 15px;"></i>
+    <p>Failed to load document preview.</p>
+    <p>${err.message}</p>
+</div>`;
+});
+}
+
+function closePreview() {
+const modal = document.getElementById('previewModal');
+modal.style.display = 'none';
+const embed = document.querySelector('#previewContent embed');
+const img = document.querySelector('#previewContent img');
+if (embed) URL.revokeObjectURL(embed.src);
+if (img) URL.revokeObjectURL(img.src);
+}
+
+// ================= URL PARAM HANDLER =================
+document.addEventListener('DOMContentLoaded', () => {
+const urlParams = new URLSearchParams(window.location.search);
+const activeTab = urlParams.get('activeTab');
+const activeSubTab = urlParams.get('activeSubTab');
+
+if (activeTab === 'profile' && activeSubTab === 'documents') {
+window.history.replaceState({}, '', window.location.pathname);
+activateProfileTab();
+document.querySelector('[data-subtab="profile-documents"]').click();
+}
+});
+
+// ================= STATUS INDICATOR =================
+const statusIndicator = document.getElementById('statusIndicatorCard');
+const employeeId = '[[${employee.employeeId}]]';
+let currentPresenceStatus = '[[${employee.presenceStatus}]]' || 'OFFLINE';
+
 function updateStatusIndicator(status) {
-    const statusIndicator = document.getElementById('statusIndicatorCard');
+const statusIndicator = document.getElementById('statusIndicatorCard');
 
-    if (status === 'ACTIVE') {
-        statusIndicator.classList.remove('inactive', 'break');
-        statusIndicator.classList.add('active');
-        statusIndicator.title = 'Status: Active (Click to Check Out)';
-        if (window.whTracker) whTracker.syncWithAttendance('ACTIVE');
-    } else if (status === 'BREAK') {
-        statusIndicator.classList.remove('active', 'inactive');
-        statusIndicator.classList.add('break');
-        statusIndicator.title = 'Status: On Break (Click to End Break)';
-    } else {
-        statusIndicator.classList.remove('active', 'break');
-        statusIndicator.classList.add('inactive');
-        statusIndicator.title = 'Status: Offline (Click to Check In)';
-        if (window.whTracker) whTracker.syncWithAttendance('OFFLINE');
-    }
+if (status === 'ACTIVE') {
+statusIndicator.classList.remove('inactive', 'break');
+statusIndicator.classList.add('active');
+statusIndicator.title = 'Status: Active (Click to Check Out)';
+if (window.whTracker) whTracker.syncWithAttendance('ACTIVE');
+} else if (status === 'BREAK') {
+statusIndicator.classList.remove('active', 'inactive');
+statusIndicator.classList.add('break');
+statusIndicator.title = 'Status: On Break (Click to End Break)';
+} else {
+statusIndicator.classList.remove('active', 'break');
+statusIndicator.classList.add('inactive');
+statusIndicator.title = 'Status: Offline (Click to Check In)';
+if (window.whTracker) whTracker.syncWithAttendance('OFFLINE');
+}
 }
 
-    updateStatusIndicator(currentPresenceStatus);
+updateStatusIndicator(currentPresenceStatus);
 
-    statusIndicator.addEventListener('click', () => {
-        const newStatus = statusIndicator.classList.contains('active') ? 'OFFLINE' : 'ACTIVE';
-        fetch(`/api/presence/set/${employeeId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `status=${newStatus}`
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                currentPresenceStatus = newStatus;
-                updateStatusIndicator(newStatus);
-                localStorage.setItem('presenceUpdate', JSON.stringify({ employeeId, status: newStatus }));
-            }
-        })
-        .catch(err => console.error('Status update failed:', err));
-    });
+statusIndicator.addEventListener('click', () => {
+const newStatus = statusIndicator.classList.contains('active') ? 'OFFLINE' : 'ACTIVE';
+fetch(`/api/presence/set/${employeeId}`, {
+method: 'POST',
+headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+body: `status=${newStatus}`
+})
+.then(r => r.json())
+.then(data => {
+if (data.success) {
+currentPresenceStatus = newStatus;
+updateStatusIndicator(newStatus);
+localStorage.setItem('presenceUpdate', JSON.stringify({ employeeId, status: newStatus }));
+}
+})
+.catch(err => console.error('Status update failed:', err));
+});
 
-    // ========== NOTIFICATION MANAGER ==========
-    class NotificationManager {
-        constructor() {
-            this.notifications = [];
-            this.unreadCount = 0;
-            this.employeeId = '[[${employee.employeeId}]]';
-            this.initializeWebSocket();
-            this.loadExistingNotifications();
-        }
+// ================= NOTIFICATION MANAGER =================
+class NotificationManager {
+constructor() {
+this.notifications = [];
+this.unreadCount = 0;
+this.employeeId = '[[${employee.employeeId}]]';
+this.initializeWebSocket();
+this.loadExistingNotifications();
+}
 
-        initializeWebSocket() {
-            try {
-                const socket = new SockJS('/ws');
-                this.stompClient = Stomp.over(socket);
-                this.stompClient.debug = () => {};
+initializeWebSocket() {
+try {
+const socket = new SockJS('/ws');
+this.stompClient = Stomp.over(socket);
+this.stompClient.debug = () => {};
 
-                this.stompClient.connect({}, (frame) => {
-                    console.log('✅ Connected to WebSocket for notifications');
-                    this.stompClient.subscribe(
-                        `/topic/employee/${this.employeeId}/notifications`,
-                        (message) => {
-                            const notification = JSON.parse(message.body);
-                            console.log("📨 Received real-time notification:", notification);
-                            if (notification.persistent) {
-                                this.addNotification(notification);
-                            } else {
-                                this.showNotificationToast(notification);
-                            }
-                        }
-                    );
-                });
-            } catch (error) {
-                console.error('❌ Failed to initialize WebSocket:', error);
-            }
-        }
+this.stompClient.connect({}, (frame) => {
+console.log('✅ Connected to WebSocket for notifications');
+this.stompClient.subscribe(
+`/topic/employee/${this.employeeId}/notifications`,
+(message) => {
+const notification = JSON.parse(message.body);
+console.log("📨 Received real-time notification:", notification);
+if (notification.persistent) {
+this.addNotification(notification);
+} else {
+this.showNotificationToast(notification);
+}
+}
+);
+});
+} catch (error) {
+console.error('❌ Failed to initialize WebSocket:', error);
+}
+}
 
-        addNotification(notification) {
-            if (!notification.timestamp) {
-                notification.timestamp = new Date(notification.createdAt || Date.now()).toLocaleString('en-IN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            }
-            notification.read = false;
-            this.notifications.unshift(notification);
-            this.unreadCount++;
-            this.renderNotification(notification);
-            this.updateNotificationBadge();
-            this.saveNotifications();
-        }
+addNotification(notification) {
+if (!notification.timestamp) {
+notification.timestamp = new Date(notification.createdAt || Date.now()).toLocaleString('en-IN', {
+day: '2-digit',
+month: 'short',
+year: 'numeric',
+hour: '2-digit',
+minute: '2-digit'
+});
+}
+notification.read = false;
+this.notifications.unshift(notification);
+this.unreadCount++;
+this.renderNotification(notification);
+this.updateNotificationBadge();
+this.saveNotifications();
+}
 
-        renderNotification(notification) {
-            const notificationList = document.getElementById('notificationList');
-            const emptyNotification = document.getElementById('emptyNotification');
-            if (emptyNotification) emptyNotification.style.display = 'none';
+renderNotification(notification) {
+const notificationList = document.getElementById('notificationList');
+const emptyNotification = document.getElementById('emptyNotification');
+if (emptyNotification) emptyNotification.style.display = 'none';
 
-            const notificationItem = document.createElement('div');
-            notificationItem.className = 'notification-item' + (notification.read ? '' : ' unread');
-            notificationItem.setAttribute('data-notification-id', notification.id);
+const notificationItem = document.createElement('div');
+notificationItem.className = 'notification-item' + (notification.read ? '' : ' unread');
+notificationItem.setAttribute('data-notification-id', notification.id);
 
-            let iconClass = 'fa-info-circle';
-            let iconColor = 'var(--primary)';
+let iconClass = 'fa-info-circle';
+let iconColor = 'var(--primary)';
 
-            if (notification.type === 'DOCUMENT_VERIFIED') {
-                iconClass = 'fa-check-circle';
-                iconColor = 'var(--success)';
-            } else if (notification.type === 'DOCUMENT_REJECTED') {
-                iconClass = 'fa-times-circle';
-                iconColor = 'var(--danger)';
-            } else if (notification.type === 'DOCUMENT_UPLOADED') {
-                iconClass = 'fa-file-upload';
-                iconColor = 'var(--info)';
-            } else if (notification.type === 'DEADLINE_WARNING') {
-                iconClass = 'fa-clock';
-                iconColor = 'var(--warning)';
-            } else if (notification.type === 'DEADLINE_REACHED') {
-                iconClass = 'fa-exclamation-triangle';
-                iconColor = 'var(--danger)';
-            } else if (notification.type === 'ALL_DOCUMENTS_UPLOADED') {
-                iconClass = 'fa-check-double';
-                iconColor = 'var(--success)';
-            }
+if (notification.type === 'DOCUMENT_VERIFIED') {
+iconClass = 'fa-check-circle';
+iconColor = 'var(--success)';
+} else if (notification.type === 'DOCUMENT_REJECTED') {
+iconClass = 'fa-times-circle';
+iconColor = 'var(--danger)';
+} else if (notification.type === 'DOCUMENT_UPLOADED') {
+iconClass = 'fa-file-upload';
+iconColor = 'var(--info)';
+} else if (notification.type === 'DEADLINE_WARNING') {
+iconClass = 'fa-clock';
+iconColor = 'var(--warning)';
+} else if (notification.type === 'DEADLINE_REACHED') {
+iconClass = 'fa-exclamation-triangle';
+iconColor = 'var(--danger)';
+} else if (notification.type === 'ALL_DOCUMENTS_UPLOADED') {
+iconClass = 'fa-check-double';
+iconColor = 'var(--success)';
+}
 
-            notificationItem.innerHTML = `
-                <div class="notification-icon" style="background: ${iconColor}20; color: ${iconColor};">
-                    <i class="fas ${iconClass}"></i>
-                </div>
-                <div class="notification-content">
-                    <p class="notification-title">${notification.title}</p>
-                    <p class="notification-message">${notification.message}</p>
-                    <p class="notification-time">${notification.timestamp}</p>
-                </div>
-            `;
+notificationItem.innerHTML = `
+<div class="notification-icon" style="background: ${iconColor}20; color: ${iconColor};">
+    <i class="fas ${iconClass}"></i>
+</div>
+<div class="notification-content">
+    <p class="notification-title">${notification.title}</p>
+    <p class="notification-message">${notification.message}</p>
+    <p class="notification-time">${notification.timestamp}</p>
+</div>
+`;
 
-            notificationItem.addEventListener('click', () => {
-                this.markAsRead(notification);
-                this.showFullNotification(notification);
-            });
+notificationItem.addEventListener('click', () => {
+this.markAsRead(notification);
+this.showFullNotification(notification);
+});
 
-            notificationList.insertBefore(notificationItem, notificationList.firstChild);
-        }
+notificationList.insertBefore(notificationItem, notificationList.firstChild);
+}
 
-        showFullNotification(notification) {
-            const modal = document.createElement('div');
-            modal.className = 'notification-detail-modal';
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.8);
-                z-index: 10000;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            `;
+showFullNotification(notification) {
+const modal = document.createElement('div');
+modal.className = 'notification-detail-modal';
+modal.style.cssText = `
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.8);
+z-index: 10000;
+display: flex;
+justify-content: center;
+align-items: center;
+`;
 
-            const statusColor = notification.type.includes('VERIFIED') ? '#10b981' : '#ef4444';
-            const statusBg = notification.type.includes('VERIFIED') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+const statusColor = notification.type.includes('VERIFIED') ? '#10b981' : '#ef4444';
+const statusBg = notification.type.includes('VERIFIED') ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
 
-            modal.innerHTML = `
-                <div style="background: var(--dark-card); padding: 24px; border-radius: 12px; width: 500px; border: 1px solid var(--dark-border); max-height: 80vh; overflow-y: auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 style="margin: 0; color: white;">Notification Details</h3>
-                        <button onclick="this.closest('.notification-detail-modal').remove()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                            <span class="status-badge status-${notification.type.toLowerCase()}" style="font-size: 12px;">${notification.type}</span>
-                            <span style="color: var(--dark-text-secondary); font-size: 12px;">${notification.timestamp}</span>
-                        </div>
-                    </div>
-                    ${notification.referenceId ? `
-                    <div style="margin-bottom: 15px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 6px;">
-                        <div style="margin-bottom: 8px;"><strong style="color: var(--dark-text-secondary);">Document:</strong><span style="color: white;">${notification.documentName || 'N/A'}</span></div>
-                        ${notification.sender ? `<div><strong style="color: var(--dark-text-secondary);">By:</strong><span style="color: white;">${notification.sender}</span></div>` : ''}
-                    </div>` : ''}
-                    <div style="margin-bottom: 15px;">
-                        <strong style="color: var(--dark-text-secondary); display: block; margin-bottom: 8px;">Message:</strong>
-                        <div style="background: ${statusBg}; padding: 12px; border-radius: 6px; border-left: 3px solid ${statusColor};">
-                            <p style="color: white; margin: 0; white-space: pre-wrap; line-height: 1.5;">${notification.message}</p>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <button onclick="this.closest('.notification-detail-modal').remove()" style="background: var(--primary); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Close</button>
-                    </div>
-                </div>
-            `;
+modal.innerHTML = `
+<div style="background: var(--dark-card); padding: 24px; border-radius: 12px; width: 500px; border: 1px solid var(--dark-border); max-height: 80vh; overflow-y: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; color: white;">Notification Details</h3>
+        <button onclick="this.closest('.notification-detail-modal').remove()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div style="margin-bottom: 15px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span class="status-badge status-${notification.type.toLowerCase()}" style="font-size: 12px;">${notification.type}</span>
+            <span style="color: var(--dark-text-secondary); font-size: 12px;">${notification.timestamp}</span>
+        </div>
+    </div>
+    ${notification.referenceId ? `
+    <div style="margin-bottom: 15px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 6px;">
+        <div style="margin-bottom: 8px;"><strong style="color: var(--dark-text-secondary);">Document:</strong><span style="color: white;">${notification.documentName || 'N/A'}</span></div>
+        ${notification.sender ? `<div><strong style="color: var(--dark-text-secondary);">By:</strong><span style="color: white;">${notification.sender}</span></div>` : ''}
+    </div>` : ''}
+    <div style="margin-bottom: 15px;">
+        <strong style="color: var(--dark-text-secondary); display: block; margin-bottom: 8px;">Message:</strong>
+        <div style="background: ${statusBg}; padding: 12px; border-radius: 6px; border-left: 3px solid ${statusColor};">
+            <p style="color: white; margin: 0; white-space: pre-wrap; line-height: 1.5;">${notification.message}</p>
+        </div>
+    </div>
+    <div style="text-align: right;">
+        <button onclick="this.closest('.notification-detail-modal').remove()" style="background: var(--primary); border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Close</button>
+    </div>
+</div>
+`;
 
-            document.body.appendChild(modal);
-        }
+document.body.appendChild(modal);
+}
 
-        markAsRead(notification) {
-            if (!notification.read) {
-                notification.read = true;
-                this.unreadCount = Math.max(0, this.unreadCount - 1);
-                this.updateNotificationBadge();
-                this.saveNotifications();
-            }
-        }
+markAsRead(notification) {
+if (!notification.read) {
+notification.read = true;
+this.unreadCount = Math.max(0, this.unreadCount - 1);
+this.updateNotificationBadge();
+this.saveNotifications();
+}
+}
 
-        updateNotificationBadge() {
-            const badge = document.getElementById('notificationBadge');
-            if (badge) {
-                badge.textContent = this.unreadCount;
-                badge.style.display = this.unreadCount > 0 ? 'flex' : 'none';
-            }
-        }
+updateNotificationBadge() {
+const badge = document.getElementById('notificationBadge');
+if (badge) {
+badge.textContent = this.unreadCount;
+badge.style.display = this.unreadCount > 0 ? 'flex' : 'none';
+}
+}
 
-        showNotificationToast(notification) {
-            const isDeadline = notification.type === 'DEADLINE_WARNING' || notification.type === 'DEADLINE_REACHED';
-            const isUrgent = notification.type === 'DEADLINE_REACHED';
+showNotificationToast(notification) {
+const isDeadline = notification.type === 'DEADLINE_WARNING' || notification.type === 'DEADLINE_REACHED';
+const isUrgent = notification.type === 'DEADLINE_REACHED';
 
-            const toast = document.createElement('div');
-            toast.className = 'notification-toast';
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: ${isUrgent ? 'rgba(239, 68, 68, 0.95)' : 'rgba(245, 158, 11, 0.95)'};
-                color: white;
-                padding: 18px 24px;
-                border-radius: 8px;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-                z-index: 10000;
-                max-width: 380px;
-                animation: slideIn 0.3s ease;
-                border-left: 5px solid ${isUrgent ? '#ef4444' : '#f59e0b'};
-                font-weight: 500;
-            `;
+const toast = document.createElement('div');
+toast.className = 'notification-toast';
+toast.style.cssText = `
+position: fixed;
+top: 20px;
+right: 20px;
+background: ${isUrgent ? 'rgba(239, 68, 68, 0.95)' : 'rgba(245, 158, 11, 0.95)'};
+color: white;
+padding: 18px 24px;
+border-radius: 8px;
+box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+z-index: 10000;
+max-width: 380px;
+animation: slideIn 0.3s ease;
+border-left: 5px solid ${isUrgent ? '#ef4444' : '#f59e0b'};
+font-weight: 500;
+`;
 
-            const iconClass = isUrgent ? 'fa-exclamation-triangle' : 'fa-clock';
+const iconClass = isUrgent ? 'fa-exclamation-triangle' : 'fa-clock';
 
-            toast.innerHTML = `
-                <div style="display: flex; align-items: flex-start; gap: 12px;">
-                    <i class="fas ${iconClass}" style="margin-top: 3px; font-size: 18px; flex-shrink: 0;"></i>
-                    <div>
-                        <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">
-                            ${notification.title}
-                        </div>
-                        <div style="opacity: 0.95; font-size: 13px; line-height: 1.4;">
-                            ${notification.message}
-                        </div>
-                        <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">
-                            ${new Date(notification.createdAt).toLocaleString()}
-                        </div>
-                    </div>
-                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 16px; cursor: pointer; margin-left: auto; padding: 0; width: 24px; height: 24px;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
+toast.innerHTML = `
+<div style="display: flex; align-items: flex-start; gap: 12px;">
+    <i class="fas ${iconClass}" style="margin-top: 3px; font-size: 18px; flex-shrink: 0;"></i>
+    <div>
+        <div style="font-weight: 700; margin-bottom: 6px; font-size: 15px;">
+            ${notification.title}
+        </div>
+        <div style="opacity: 0.95; font-size: 13px; line-height: 1.4;">
+            ${notification.message}
+        </div>
+        <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">
+            ${new Date(notification.createdAt).toLocaleString()}
+        </div>
+    </div>
+    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 16px; cursor: pointer; margin-left: auto; padding: 0; width: 24px; height: 24px;">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+`;
 
-            document.body.appendChild(toast);
-            const timeout = isDeadline ? 8000 : 5000;
-            setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.style.animation = 'slideOut 0.3s ease';
-                    setTimeout(() => toast.remove(), 300);
-                }
-            }, timeout);
-        }
+document.body.appendChild(toast);
+const timeout = isDeadline ? 8000 : 5000;
+setTimeout(() => {
+if (toast.parentElement) {
+toast.style.animation = 'slideOut 0.3s ease';
+setTimeout(() => toast.remove(), 300);
+}
+}, timeout);
+}
 
-        loadExistingNotifications() {
-            const saved = localStorage.getItem(`notifications_${this.employeeId}`);
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    this.notifications = data.notifications || [];
-                    this.unreadCount = data.unreadCount || 0;
-                    this.notifications.forEach(notification => this.renderNotification(notification));
-                } catch (e) {
-                    console.error('Failed to load notifications:', e);
-                }
-            }
-        }
+loadExistingNotifications() {
+const saved = localStorage.getItem(`notifications_${this.employeeId}`);
+if (saved) {
+try {
+const data = JSON.parse(saved);
+this.notifications = data.notifications || [];
+this.unreadCount = data.unreadCount || 0;
+this.notifications.forEach(notification => this.renderNotification(notification));
+} catch (e) {
+console.error('Failed to load notifications:', e);
+}
+}
+}
 
-        saveNotifications() {
-            try {
-                const data = { notifications: this.notifications, unreadCount: this.unreadCount };
-                localStorage.setItem(`notifications_${this.employeeId}`, JSON.stringify(data));
-            } catch (e) {
-                console.error('Failed to save notifications:', e);
-            }
-        }
-    }
+saveNotifications() {
+try {
+const data = { notifications: this.notifications, unreadCount: this.unreadCount };
+localStorage.setItem(`notifications_${this.employeeId}`, JSON.stringify(data));
+} catch (e) {
+console.error('Failed to save notifications:', e);
+}
+}
+}
 
-    let notificationManager;
+let notificationManager;
 
-    document.addEventListener('DOMContentLoaded', function() {
-        notificationManager = new NotificationManager();
-        loadAndRenderNotifications();
-        initializeAttendanceTab();
-    });
+// ================= GLOBAL FUNCTIONS FOR DROPDOWN =================
+function markAllNotificationsRead() {
+if (notificationManager) {
+notificationManager.notifications.forEach(notification => { notification.read = true; });
+notificationManager.unreadCount = 0;
+notificationManager.updateNotificationBadge();
+notificationManager.saveNotifications();
+document.querySelectorAll('.notification-item').forEach(item => item.classList.remove('unread'));
+}
+return false;
+}
 
-    // ========== GLOBAL FUNCTIONS FOR DROPDOWN ==========
-    function markAllNotificationsRead() {
-        if (notificationManager) {
-            notificationManager.notifications.forEach(notification => { notification.read = true; });
-            notificationManager.unreadCount = 0;
-            notificationManager.updateNotificationBadge();
-            notificationManager.saveNotifications();
-            document.querySelectorAll('.notification-item').forEach(item => item.classList.remove('unread'));
-        }
-        return false;
-    }
+function loadAndRenderNotifications() {
+if (!notificationManager) return;
+const notificationList = document.getElementById('notificationList');
+const items = notificationList.querySelectorAll('.notification-item');
+items.forEach(item => item.remove());
+notificationManager.notifications.forEach(notification => {
+notificationManager.renderNotification(notification);
+});
+}
 
-    function loadAndRenderNotifications() {
-        if (!notificationManager) return;
-        const notificationList = document.getElementById('notificationList');
-        const items = notificationList.querySelectorAll('.notification-item');
-        items.forEach(item => item.remove());
-        notificationManager.notifications.forEach(notification => {
-            notificationManager.renderNotification(notification);
-        });
-    }
+// ================= DEADLINE COUNTDOWN =================
+function updateDocumentsTabCountdown() {
+const deadlineContainer = document.getElementById('documentsTabDeadline');
+if (!deadlineContainer) return;
 
-    // ========== DEADLINE COUNTDOWN ==========
-    function updateDocumentsTabCountdown() {
-        const deadlineContainer = document.getElementById('documentsTabDeadline');
-        if (!deadlineContainer) return;
+const deadlineStr = deadlineContainer.getAttribute('data-deadline');
+if (!deadlineStr || deadlineStr === 'null' || deadlineStr.trim() === '') {
+deadlineContainer.style.display = 'none';
+return;
+}
 
-        const deadlineStr = deadlineContainer.getAttribute('data-deadline');
-        if (!deadlineStr || deadlineStr === 'null' || deadlineStr.trim() === '') {
-            deadlineContainer.style.display = 'none';
-            return;
-        }
+const deadline = new Date(deadlineStr.trim());
+if (isNaN(deadline.getTime())) {
+document.getElementById('documentsTabCountdown').textContent = "Invalid deadline";
+return;
+}
 
-        const deadline = new Date(deadlineStr.trim());
-        if (isNaN(deadline.getTime())) {
-            document.getElementById('documentsTabCountdown').textContent = "Invalid deadline";
-            return;
-        }
+const now = new Date();
+const diff = deadline - now;
 
-        const now = new Date();
-        const diff = deadline - now;
+if (diff <= 0) {
+document.getElementById('documentsTabCountdown').textContent = "⚠️ OVERDUE";
+document.getElementById('documentsTabCountdown').style.color = 'var(--danger)';
+deadlineContainer.classList.add('urgent');
+return;
+}
 
-        if (diff <= 0) {
-            document.getElementById('documentsTabCountdown').textContent = "⚠️ OVERDUE";
-            document.getElementById('documentsTabCountdown').style.color = 'var(--danger)';
-            deadlineContainer.classList.add('urgent');
-            return;
-        }
+const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+let text = '';
+if (days > 0) text += `${days}d `;
+if (hours > 0 || days > 0) text += `${hours}h `;
+text += `${minutes}m`;
 
-        let text = '';
-        if (days > 0) text += `${days}d `;
-        if (hours > 0 || days > 0) text += `${hours}h `;
-        text += `${minutes}m`;
+document.getElementById('documentsTabCountdown').textContent = text;
+const badge = document.getElementById('documentsTabDeadline');
+badge.classList.remove('urgent', 'warning', 'safe');
+if (diff < 86400000) {
+badge.classList.add('urgent');
+document.getElementById('documentsTabCountdown').style.color = 'var(--danger)';
+} else if (diff < 259200000) {
+badge.classList.add('warning');
+document.getElementById('documentsTabCountdown').style.color = 'var(--warning)';
+} else {
+badge.classList.add('safe');
+document.getElementById('documentsTabCountdown').style.color = 'var(--success)';
+}
+}
 
-        document.getElementById('documentsTabCountdown').textContent = text;
-        const badge = document.getElementById('documentsTabDeadline');
-        badge.classList.remove('urgent', 'warning', 'safe');
-        if (diff < 86400000) {
-            badge.classList.add('urgent');
-            document.getElementById('documentsTabCountdown').style.color = 'var(--danger)';
-        } else if (diff < 259200000) {
-            badge.classList.add('warning');
-            document.getElementById('documentsTabCountdown').style.color = 'var(--warning)';
-        } else {
-            badge.classList.add('safe');
-            document.getElementById('documentsTabCountdown').style.color = 'var(--success)';
-        }
-    }
+// File upload handling for leave form
+document.getElementById('leaveSupportingDoc').addEventListener('change', function(e) {
+const fileName = e.target.files[0] ? e.target.files[0].name : 'Click to upload file';
+document.getElementById('leaveFileName').textContent = fileName;
+});
 
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(updateDocumentsTabCountdown, 500);
-    });
-    setInterval(updateDocumentsTabCountdown, 60000);
+// Initialize leave form event listeners
+document.getElementById('leaveType').addEventListener('change', updateLeaveBalance);
+document.getElementById('leaveDuration').addEventListener('change', handleLeaveDurationChange);
+document.getElementById('halfDayType').addEventListener('change', function() {
+currentHalfDayType = this.value;
+});
 
-    // File upload handling for leave form
-    document.getElementById('leaveSupportingDoc').addEventListener('change', function(e) {
-        const fileName = e.target.files[0] ? e.target.files[0].name : 'Click to upload file';
-        document.getElementById('leaveFileName').textContent = fileName;
-    });
-
-    // Initialize leave form event listeners
-    document.getElementById('leaveType').addEventListener('change', updateLeaveBalance);
-    document.getElementById('leaveDuration').addEventListener('change', handleLeaveDurationChange);
-    document.getElementById('halfDayType').addEventListener('change', function() {
-        currentHalfDayType = this.value;
-    });
-</script>
-<script>
-    // ATTENDANCE TIMER AND STATUS MANAGEMENT
+// ================= ATTENDANCE TIMER AND STATUS MANAGEMENT =================
 class AttendanceManager {
-    constructor(employeeId) {
-        this.employeeId = employeeId;
-        this.checkInTime = null;
-        this.timerInterval = null;
-        this.status = 'OFFLINE';
-        this.totalBreakMinutes = 0;
-        this.isBreakRunning = false;
+constructor(employeeId) {
+this.employeeId = employeeId;
+this.checkInTime = null;
+this.timerInterval = null;
+this.status = 'OFFLINE';
+this.totalBreakMinutes = 0;
+this.isBreakRunning = false;
 
-        this.init();
-    }
+this.init();
+}
 
-    async init() {
-        // Restore from sessionStorage if available
-        this.restoreSession();
+async init() {
+// Restore from sessionStorage if available
+this.restoreSession();
 
-        // Fetch today's attendance from server
-        await this.fetchTodayAttendance();
+// Fetch today's attendance from server
+await this.fetchTodayAttendance();
 
-        // Update UI
-        this.updateStatusIndicator();
-        this.startTimer();
-    }
+// Update UI
+this.updateStatusIndicator();
+this.startTimer();
+}
 
-    restoreSession() {
-        const stored = sessionStorage.getItem('attendanceSession');
-        if (stored) {
-            const data = JSON.parse(stored);
-            this.checkInTime = data.checkInTime ? new Date(data.checkInTime) : null;
-            this.status = data.status || 'OFFLINE';
-            this.totalBreakMinutes = data.totalBreakMinutes || 0;
-        }
-    }
+restoreSession() {
+const stored = sessionStorage.getItem('attendanceSession');
+if (stored) {
+const data = JSON.parse(stored);
+this.checkInTime = data.checkInTime ? new Date(data.checkInTime) : null;
+this.status = data.status || 'OFFLINE';
+this.totalBreakMinutes = data.totalBreakMinutes || 0;
+}
+}
 
-    saveSession() {
-        const data = {
-            checkInTime: this.checkInTime ? this.checkInTime.toISOString() : null,
-            status: this.status,
-            totalBreakMinutes: this.totalBreakMinutes,
-            lastUpdate: new Date().toISOString()
-        };
-        sessionStorage.setItem('attendanceSession', JSON.stringify(data));
-    }
+saveSession() {
+const data = {
+checkInTime: this.checkInTime ? this.checkInTime.toISOString() : null,
+status: this.status,
+totalBreakMinutes: this.totalBreakMinutes,
+lastUpdate: new Date().toISOString()
+};
+sessionStorage.setItem('attendanceSession', JSON.stringify(data));
+}
 
-    async fetchTodayAttendance() {
-        try {
-            const response = await fetch(`/api/attendance/today/${this.employeeId}`);
-            const data = await response.json();
+async fetchTodayAttendance() {
+try {
+const response = await fetch(`/api/attendance/today/${this.employeeId}`);
+const data = await response.json();
 
-            if (data.success && data.status !== 'OFFLINE') {
-                this.status = data.status;
-                this.totalBreakMinutes = data.breakMinutes || 0;
+if (data.success && data.status !== 'OFFLINE') {
+this.status = data.status;
+this.totalBreakMinutes = data.breakMinutes || 0;
 
-                if (data.checkInTimeMillis) {
-                    this.checkInTime = new Date(data.checkInTimeMillis);
-                } else if (data.checkInTime) {
-                    this.checkInTime = new Date(data.checkInTime);
-                }
+if (data.checkInTimeMillis) {
+this.checkInTime = new Date(data.checkInTimeMillis);
+} else if (data.checkInTime) {
+this.checkInTime = new Date(data.checkInTime);
+}
 
-                this.saveSession();
-            }
-        } catch (error) {
-            console.error('Error fetching attendance:', error);
-        }
-    }
+this.saveSession();
+}
+} catch (error) {
+console.error('Error fetching attendance:', error);
+}
+}
 
-    startTimer() {
-        if (this.timerInterval) clearInterval(this.timerInterval);
+startTimer() {
+if (this.timerInterval) clearInterval(this.timerInterval);
 
-        this.timerInterval = setInterval(() => {
-            this.updateTimerDisplay();
-        }, 1000);
-    }
+this.timerInterval = setInterval(() => {
+this.updateTimerDisplay();
+}, 1000);
+}
 
-    updateTimerDisplay() {
-        if (!this.checkInTime || this.status === 'OFFLINE') {
-            document.getElementById('live-timer-large').textContent = '00:00:00';
-            document.getElementById('hoursDisplayTop').textContent = '0h 0m';
-            return;
-        }
+updateTimerDisplay() {
+if (!this.checkInTime || this.status === 'OFFLINE') {
+document.getElementById('live-timer-large').textContent = '00:00:00';
+document.getElementById('hoursDisplayTop').textContent = '0h 0m';
+return;
+}
 
-        const now = new Date();
-        let diff = now - this.checkInTime;
+const now = new Date();
+let diff = now - this.checkInTime;
 
-        // Subtract break time if on break or if break was taken
-        if (this.status === 'BREAK' && this.breakStartTime) {
-            const currentBreak = now - this.breakStartTime;
-            diff -= currentBreak;
-        }
+// Subtract break time if on break or if break was taken
+if (this.status === 'BREAK' && this.breakStartTime) {
+const currentBreak = now - this.breakStartTime;
+diff -= currentBreak;
+}
 
-        // Subtract completed break minutes
-        diff -= this.totalBreakMinutes * 60000;
+// Subtract completed break minutes
+diff -= this.totalBreakMinutes * 60000;
 
-        // Ensure non-negative
-        diff = Math.max(0, diff);
+// Ensure non-negative
+diff = Math.max(0, diff);
 
-        const hours = Math.floor(diff / 3600000);
-        const minutes = Math.floor((diff % 3600000) / 60000);
-        const seconds = Math.floor((diff % 60000) / 1000);
+const hours = Math.floor(diff / 3600000);
+const minutes = Math.floor((diff % 3600000) / 60000);
+const seconds = Math.floor((diff % 60000) / 1000);
 
-        const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        const shortString = `${hours}h ${minutes}m`;
+const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+const shortString = `${hours}h ${minutes}m`;
 
-        document.getElementById('live-timer-large').textContent = timeString;
-        document.getElementById('hoursDisplayTop').textContent = shortString;
-        document.getElementById('total-hours-small').textContent = shortString;
+document.getElementById('live-timer-large').textContent = timeString;
+document.getElementById('hoursDisplayTop').textContent = shortString;
+document.getElementById('total-hours-small').textContent = shortString;
 
-        // Update status indicator if exists
-        this.updateStatusIndicator();
-    }
+// Update status indicator if exists
+this.updateStatusIndicator();
+}
 
-    updateStatusIndicator() {
-        const indicator = document.getElementById('statusIndicatorCard');
-        const clockToggle = document.getElementById('clockToggleTop');
+updateStatusIndicator() {
+const indicator = document.getElementById('statusIndicatorCard');
+const clockToggle = document.getElementById('clockToggleTop');
 
-        if (!indicator) return;
+if (!indicator) return;
 
-        // Remove all status classes
-        indicator.classList.remove('active', 'inactive', 'break');
+// Remove all status classes
+indicator.classList.remove('active', 'inactive', 'break');
 
-        if (this.status === 'ACTIVE') {
-            indicator.classList.add('active');
-            indicator.title = 'Status: Active (Click to Check Out)';
-            if (clockToggle) clockToggle.style.borderColor = 'var(--success)';
-        } else if (this.status === 'BREAK') {
-            indicator.classList.add('break'); // You need to add CSS for .break class (yellow/orange)
-            indicator.title = 'Status: On Break (Click to End Break)';
-            if (clockToggle) clockToggle.style.borderColor = 'var(--warning)';
-        } else {
-            indicator.classList.add('inactive');
-            indicator.title = 'Status: Offline (Click to Check In)';
-            if (clockToggle) clockToggle.style.borderColor = 'var(--danger)';
-        }
-    }
+if (this.status === 'ACTIVE') {
+indicator.classList.add('active');
+indicator.title = 'Status: Active (Click to Check Out)';
+if (clockToggle) clockToggle.style.borderColor = 'var(--success)';
+} else if (this.status === 'BREAK') {
+indicator.classList.add('break'); // You need to add CSS for .break class (yellow/orange)
+indicator.title = 'Status: On Break (Click to End Break)';
+if (clockToggle) clockToggle.style.borderColor = 'var(--warning)';
+} else {
+indicator.classList.add('inactive');
+indicator.title = 'Status: Offline (Click to Check In)';
+if (clockToggle) clockToggle.style.borderColor = 'var(--danger)';
+}
+}
 
-    async toggleStatus() {
-        if (this.status === 'OFFLINE') {
-            await this.checkIn();
-        } else if (this.status === 'ACTIVE') {
-            await this.checkOut();
-        } else if (this.status === 'BREAK') {
-            await this.endBreak();
-        }
-    }
+async toggleStatus() {
+if (this.status === 'OFFLINE') {
+await this.checkIn();
+} else if (this.status === 'ACTIVE') {
+await this.checkOut();
+} else if (this.status === 'BREAK') {
+await this.endBreak();
+}
+}
 
-    async checkIn() {
-        try {
-            const response = await fetch(`/api/attendance/checkin/${this.employeeId}`, {
-                method: 'POST'
-            });
-            const data = await response.json();
+async checkIn() {
+try {
+const response = await fetch(`/api/attendance/checkin/${this.employeeId}`, {
+method: 'POST'
+});
+const data = await response.json();
 
-            if (data.success) {
-                this.status = 'ACTIVE';
-                this.checkInTime = new Date(data.checkInTimeMillis || data.checkInTime);
-                this.saveSession();
-                this.updateStatusIndicator();
-                this.showNotification('Checked in successfully!', 'success');
-            }
-        } catch (error) {
-            this.showNotification('Check-in failed', 'error');
-        }
-    }
+if (data.success) {
+this.status = 'ACTIVE';
+this.checkInTime = new Date(data.checkInTimeMillis || data.checkInTime);
+this.saveSession();
+this.updateStatusIndicator();
+this.showNotification('Checked in successfully!', 'success');
+}
+} catch (error) {
+this.showNotification('Check-in failed', 'error');
+}
+}
 
-    async checkOut() {
-        if (!confirm('Are you sure you want to check out?')) return;
+async checkOut() {
+if (!confirm('Are you sure you want to check out?')) return;
 
-        try {
-            const response = await fetch(`/api/attendance/checkout/${this.employeeId}`, {
-                method: 'POST'
-            });
-            const data = await response.json();
+try {
+const response = await fetch(`/api/attendance/checkout/${this.employeeId}`, {
+method: 'POST'
+});
+const data = await response.json();
 
-            if (data.success) {
-                this.status = 'OFFLINE';
-                this.saveSession();
-                this.updateStatusIndicator();
-                this.showNotification(`Checked out! Total: ${data.totalWorkingMinutes} mins`, 'success');
-            }
-        } catch (error) {
-            this.showNotification('Check-out failed', 'error');
-        }
-    }
+if (data.success) {
+this.status = 'OFFLINE';
+this.saveSession();
+this.updateStatusIndicator();
+this.showNotification(`Checked out! Total: ${data.totalWorkingMinutes} mins`, 'success');
+}
+} catch (error) {
+this.showNotification('Check-out failed', 'error');
+}
+}
 
-    async toggleBreak() {
-        try {
-            const action = this.status === 'BREAK' ? 'end' : 'start';
-            const response = await fetch(`/api/attendance/break/${this.employeeId}?action=${action}`, {
-                method: 'POST'
-            });
-            const data = await response.json();
+async toggleBreak() {
+try {
+const action = this.status === 'BREAK' ? 'end' : 'start';
+const response = await fetch(`/api/attendance/break/${this.employeeId}?action=${action}`, {
+method: 'POST'
+});
+const data = await response.json();
 
-            if (data.success) {
-                if (action === 'start') {
-                    this.status = 'BREAK';
-                    this.breakStartTime = new Date();
-                    this.showNotification('Break started', 'info');
-                } else {
-                    this.status = 'ACTIVE';
-                    this.totalBreakMinutes = data.totalBreakMinutes;
-                    this.breakStartTime = null;
-                    this.showNotification('Break ended', 'success');
-                }
-                this.saveSession();
-                this.updateStatusIndicator();
-            }
-        } catch (error) {
-            this.showNotification('Break toggle failed', 'error');
-        }
-    }
+if (data.success) {
+if (action === 'start') {
+this.status = 'BREAK';
+this.breakStartTime = new Date();
+this.showNotification('Break started', 'info');
+} else {
+this.status = 'ACTIVE';
+this.totalBreakMinutes = data.totalBreakMinutes;
+this.breakStartTime = null;
+this.showNotification('Break ended', 'success');
+}
+this.saveSession();
+this.updateStatusIndicator();
+}
+} catch (error) {
+this.showNotification('Break toggle failed', 'error');
+}
+}
 
-    showNotification(message, type) {
-        // Use your existing notification system or create a toast
-        if (typeof showSuccessPopup === 'function') {
-            showSuccessPopup(type === 'success' ? 'Success' : 'Notification', message);
-        } else {
-            alert(message);
-        }
-    }
+showNotification(message, type) {
+// Use your existing notification system or create a toast
+if (typeof showSuccessPopup === 'function') {
+showSuccessPopup(type === 'success' ? 'Success' : 'Notification', message);
+} else {
+alert(message);
+}
+}
 }
 
 // Initialize when dashboard loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Get employee ID from your existing Thymeleaf variable
-    const employeeId = document.querySelector('[data-employee-id]')?.dataset.employeeId
-                      || document.getElementById('employeeIdData')?.value;
+// Get employee ID from your existing Thymeleaf variable
+const employeeId = document.querySelector('[data-employee-id]')?.dataset.employeeId
+|| document.getElementById('employeeIdData')?.value;
 
-    if (employeeId) {
-        window.attendanceManager = new AttendanceManager(employeeId);
+if (employeeId) {
+window.attendanceManager = new AttendanceManager(employeeId);
 
-        // Add click listener to status indicator
-        const statusIndicator = document.getElementById('statusIndicatorCard');
-        if (statusIndicator) {
-            statusIndicator.addEventListener('click', () => {
-                window.attendanceManager.toggleStatus();
-            });
-        }
+// Add click listener to status indicator
+const statusIndicator = document.getElementById('statusIndicatorCard');
+if (statusIndicator) {
+statusIndicator.addEventListener('click', () => {
+window.attendanceManager.toggleStatus();
+});
+}
 
-        // Add break button listener if exists
-        const breakBtn = document.getElementById('breakBtn'); // Add this button in HTML if needed
-        if (breakBtn) {
-            breakBtn.addEventListener('click', () => {
-                window.attendanceManager.toggleBreak();
-            });
-        }
-    }
+// Add break button listener if exists
+const breakBtn = document.getElementById('breakBtn'); // Add this button in HTML if needed
+if (breakBtn) {
+breakBtn.addEventListener('click', () => {
+window.attendanceManager.toggleBreak();
+});
+}
+}
+
+// Initialize Notification Manager
+notificationManager = new NotificationManager();
+loadAndRenderNotifications();
+initializeAttendanceTab();
+
+// Update documents tab countdown
+setTimeout(updateDocumentsTabCountdown, 500);
+setInterval(updateDocumentsTabCountdown, 60000);
 });
 </script>
 </body>

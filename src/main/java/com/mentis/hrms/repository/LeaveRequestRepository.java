@@ -1,36 +1,16 @@
 package com.mentis.hrms.repository;
 
 import com.mentis.hrms.model.LeaveRequest;
-import com.mentis.hrms.model.LeaveRequest.LeaveStatus;
+import com.mentis.hrms.model.LeaveStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, String> {
-
+public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long> {
+    Optional<LeaveRequest> findByLeaveId(String leaveId);
     List<LeaveRequest> findByEmployeeId(String employeeId);
-
-    List<LeaveRequest> findByEmployeeIdAndStatus(String employeeId, LeaveStatus status);
-
     List<LeaveRequest> findByStatus(LeaveStatus status);
-
-    List<LeaveRequest> findByStatusIn(List<LeaveStatus> statuses);
-
-    @Query("SELECT l FROM LeaveRequest l WHERE l.employeeId = :employeeId AND " +
-            "((l.startDate BETWEEN :startDate AND :endDate) OR " +
-            "(l.endDate BETWEEN :startDate AND :endDate) OR " +
-            "(l.startDate <= :startDate AND l.endDate >= :endDate))")
-    List<LeaveRequest> findOverlappingLeaves(@Param("employeeId") String employeeId,
-                                             @Param("startDate") LocalDate startDate,
-                                             @Param("endDate") LocalDate endDate);
-
-    @Query("SELECT COUNT(l) FROM LeaveRequest l WHERE l.employeeId = :employeeId " +
-            "AND YEAR(l.startDate) = YEAR(CURRENT_DATE) " +
-            "AND l.leaveType.id = :leaveTypeId AND l.status = 'APPROVED'")
-    Long countApprovedLeavesByTypeAndYear(@Param("employeeId") String employeeId,
-                                          @Param("leaveTypeId") Long leaveTypeId);
+    List<LeaveRequest> findByEmployeeIdAndStatus(String employeeId, LeaveStatus status);
 }

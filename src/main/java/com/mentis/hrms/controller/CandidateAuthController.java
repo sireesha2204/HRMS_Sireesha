@@ -390,7 +390,7 @@ public class CandidateAuthController {
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         // Optional: Check-out on logout (uncomment if you want auto checkout on logout)
-        /*
+
         String employeeId = (String) session.getAttribute("userId");
         if (employeeId != null) {
             try {
@@ -400,7 +400,7 @@ public class CandidateAuthController {
                 logger.error("Auto check-out failed: {}", e.getMessage());
             }
         }
-        */
+
 
         if (session != null) {
             session.invalidate();
