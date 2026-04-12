@@ -1,6 +1,4 @@
-
-
-        package com.mentis.hrms.service;
+package com.mentis.hrms.service;
 
 import com.mentis.hrms.model.Employee;
 import com.mentis.hrms.repository.EmployeeRepository;
@@ -70,6 +68,40 @@ public class EmployeeService {
             throw new RuntimeException("Failed to save employee: " + e.getMessage(), e);
         }
     }
+
+    /**
+     * Update existing employee
+     */
+    @Transactional
+    public Employee updateEmployee(Employee employee) {
+        try {
+            if (employee.getId() == null) {
+                throw new IllegalArgumentException("Cannot update employee without ID");
+            }
+
+            // Set update timestamp
+            employee.setUpdatedDate(LocalDateTime.now());
+
+            // Ensure email consistency
+            if (employee.getEmail() == null && employee.getPersonalEmail() != null) {
+                employee.setEmail(employee.getPersonalEmail());
+            }
+
+            logger.info("Updating employee: {} (ID: {})",
+                    employee.getEmployeeName(), employee.getEmployeeId());
+
+            Employee updatedEmployee = employeeRepository.save(employee);
+            employeeRepository.flush();
+
+            logger.info("Employee updated successfully: {}", updatedEmployee.getEmployeeId());
+            return updatedEmployee;
+
+        } catch (Exception e) {
+            logger.error("Error updating employee: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to update employee: " + e.getMessage(), e);
+        }
+    }
+
     @Transactional
     public Employee updateEmployeeColor(String employeeId, String color) {
         Optional<Employee> employeeOpt = getEmployeeByEmployeeId(employeeId);
@@ -80,6 +112,12 @@ public class EmployeeService {
         }
         throw new RuntimeException("Employee not found: " + employeeId);
     }
+
+    @Transactional(readOnly = true)
+    public List<Employee> getAllEmployeesSortedByNewest() {
+        return employeeRepository.findAllByOrderByCreatedDateDesc();
+    }
+
     /**
      * Get employee by employee ID with all details
      */
@@ -101,22 +139,21 @@ public class EmployeeService {
         return employeeRepository.findAll();
     }
 
-    /**
-     * Update employee
-     */
-    @Transactional
-    public Employee updateEmployee(Employee employee) {
-        if (employee.getId() == null) {
-            throw new IllegalArgumentException("Cannot update employee without ID");
-        }
-
-        employee.setUpdatedDate(LocalDateTime.now());
-        Employee updated = employeeRepository.save(employee);
-        employeeRepository.flush();
-
-        logger.info("Employee updated: {}", updated.getEmployeeId());
-        return updated;
+    // Add these methods to EmployeeService.java
+    public String getStatusColor(String presenceStatus) {
+        if ("ACTIVE".equals(presenceStatus)) return "#10b981";
+        if ("BREAK".equals(presenceStatus)) return "#f59e0b";
+        if ("CHECKED_OUT".equals(presenceStatus)) return "#ef4444";
+        return "#ef4444"; // Default for OFFLINE
     }
+
+    public String getStatusDisplay(String presenceStatus) {
+        if ("ACTIVE".equals(presenceStatus)) return "Active";
+        if ("BREAK".equals(presenceStatus)) return "On Break";
+        if ("CHECKED_OUT".equals(presenceStatus)) return "Checked Out";
+        return "Offline";
+    }
+
     /**
      * Delete employee by ID
      */
@@ -133,6 +170,7 @@ public class EmployeeService {
             throw new RuntimeException("Failed to delete employee: " + e.getMessage(), e);
         }
     }
+
     /**
      * Check if employee exists
      */
@@ -141,21 +179,41 @@ public class EmployeeService {
     }
 
     /**
-     * Generate unique employee ID
+     * Generate sequential employee ID (EMP001, EMP002, etc.)
      */
     private String generateEmployeeId() {
-        String prefix = "MENTI";
-        Random random = new Random();
-        String employeeId;
+        try {
+            // Get all employees and find the highest number
+            List<Employee> allEmployees = getAllEmployees();
+            int maxNum = 0;
 
-        do {
-            int randomNum = 1000 + random.nextInt(9000);
-            employeeId = prefix + randomNum;
-        } while (employeeExists(employeeId));
+            for (Employee emp : allEmployees) {
+                String empId = emp.getEmployeeId();
+                if (empId != null && empId.startsWith("EMP")) {
+                    try {
+                        // Extract the number part after "EMP"
+                        String numPart = empId.substring(3);
+                        int num = Integer.parseInt(numPart);
+                        if (num > maxNum) {
+                            maxNum = num;
+                        }
+                    } catch (NumberFormatException e) {
+                        // Skip non-numeric suffixes
+                    }
+                }
+            }
 
-        logger.info("Generated Employee ID: {}", employeeId);
-        return employeeId;
+            // Generate next number
+            int nextNum = maxNum + 1;
+            String employeeId = String.format("EMP%03d", nextNum);
+
+            logger.info("Generated sequential Employee ID: {}", employeeId);
+            return employeeId;
+
+        } catch (Exception e) {
+            logger.error("Error generating employee ID, using fallback: {}", e.getMessage());
+            // Fallback to timestamp-based if something goes wrong
+            return "EMP" + System.currentTimeMillis();
+        }
     }
-
-
 }

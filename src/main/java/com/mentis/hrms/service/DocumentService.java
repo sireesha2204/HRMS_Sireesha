@@ -333,7 +333,36 @@ public class DocumentService {
 
         employeeRepository.save(employee);
     }
+    public Map<String, Object> uploadMultipleDocuments(String employeeId,
+                                                       Map<String, MultipartFile> files,
+                                                       String uploadedBy) throws Exception {
+        Map<String, Object> results = new HashMap<>();
+        List<String> successDocs = new ArrayList<>();
+        List<String> failedDocs = new ArrayList<>();
 
+        Employee emp = employeeRepository.findByEmployeeId(employeeId)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        for (Map.Entry<String, MultipartFile> entry : files.entrySet()) {
+            String docType = entry.getKey();
+            MultipartFile file = entry.getValue();
+
+            try {
+                OnboardingDocument doc = uploadDocument(employeeId, docType, file, "Bulk upload by " + uploadedBy);
+                successDocs.add(docType);
+            } catch (Exception e) {
+                failedDocs.add(docType + ": " + e.getMessage());
+            }
+        }
+
+        results.put("success", failedDocs.isEmpty());
+        results.put("uploaded", successDocs.size());
+        results.put("failed", failedDocs.size());
+        results.put("successDocuments", successDocs);
+        results.put("failedDocuments", failedDocs);
+
+        return results;
+    }
     /* ---------------------------------------------------- */
     /* 11. NEW: Method to manually trigger permanent notification */
     /* ---------------------------------------------------- */

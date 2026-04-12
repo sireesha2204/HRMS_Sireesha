@@ -32,7 +32,8 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
 
     /* --- Find top 5 applications by status ordered by application date --- */
     List<JobApplication> findTop5ByStatusOrderByApplicationDateDesc(String status);
-
+    /* --- Get all applications ordered by date descending --- */
+    List<JobApplication> findAllByOrderByApplicationDateDesc();
     /* --- NEW: Find applications with "Hired" status --- */
     @Query("SELECT ja FROM JobApplication ja WHERE UPPER(ja.status) = UPPER('Hired') ORDER BY ja.applicationDate DESC")
     List<JobApplication> findHiredCandidates();

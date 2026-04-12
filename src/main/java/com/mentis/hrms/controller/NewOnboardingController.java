@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import com.mentis.hrms.service.NotificationService;
+
 @Controller
 @RequestMapping("/onboarding")
 public class NewOnboardingController {
@@ -53,6 +54,7 @@ public class NewOnboardingController {
 
     @Autowired
     private NotificationService notificationService;
+
     @Value("${app.upload.base-path:C:/hrms/uploads}")
     private String basePath;
 
@@ -211,27 +213,46 @@ public class NewOnboardingController {
         return "redirect:/onboarding?error=Employee+not+found";
     }
 
+    /* ---------- UPLOAD DOCUMENT (Handles both Form and AJAX) ---------- */
     @PostMapping("/employee/{employeeId}/upload/{documentType}")
-    public String uploadDocument(@PathVariable String employeeId,
+    public Object uploadDocument(@PathVariable String employeeId,
                                  @PathVariable String documentType,
                                  @RequestParam("documentFile") MultipartFile file,
                                  @RequestParam(value = "notes", required = false) String notes,
                                  HttpSession session,
                                  RedirectAttributes ra) {
-        logger.info("=== HR UPLOAD DOCUMENT REQUEST ===");
+
+        logger.info("=== UPLOAD DOCUMENT REQUEST ===");
         logger.info("Employee ID: {}, Document Type: {}, File Size: {} bytes",
                 employeeId, documentType, file.getSize());
+
+        // Check if this is an AJAX request
+        String requestedWith = session.getAttribute("requestedWith") != null ?
+                (String) session.getAttribute("requestedWith") : "";
+        boolean isAjax = "XMLHttpRequest".equals(requestedWith);
 
         try {
             if (file == null || file.isEmpty()) {
                 logger.warn("No file selected for upload");
-                ra.addFlashAttribute("error", "❌ Please select a file to upload");
+                if (isAjax) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "success", false,
+                            "error", "Please select a file to upload"
+                    ));
+                }
+                ra.addFlashAttribute("error", "Please select a file to upload");
                 return "redirect:/onboarding/employee/" + employeeId + "/upload/" + documentType;
             }
 
             if (file.getSize() > 5 * 1024 * 1024) {
                 logger.warn("File size {} exceeds 5MB limit", file.getSize());
-                ra.addFlashAttribute("error", "❌ File size exceeds 5MB limit. Please select a smaller file.");
+                if (isAjax) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "success", false,
+                            "error", "File size exceeds 5MB limit"
+                    ));
+                }
+                ra.addFlashAttribute("error", "File size exceeds 5MB limit. Please select a smaller file.");
                 return "redirect:/onboarding/employee/" + employeeId + "/upload/" + documentType;
             }
 
@@ -242,7 +263,13 @@ public class NewOnboardingController {
 
                 if (!allowedExtensions.contains(fileExtension)) {
                     logger.warn("Invalid file extension: {}", fileExtension);
-                    ra.addFlashAttribute("error", "❌ Invalid file format. Only PDF, JPG, JPEG, PNG files are allowed.");
+                    if (isAjax) {
+                        return ResponseEntity.badRequest().body(Map.of(
+                                "success", false,
+                                "error", "Invalid file format. Only PDF, JPG, JPEG, PNG allowed."
+                        ));
+                    }
+                    ra.addFlashAttribute("error", "Invalid file format. Only PDF, JPG, JPEG, PNG files are allowed.");
                     return "redirect:/onboarding/employee/" + employeeId + "/upload/" + documentType;
                 }
             }
@@ -250,7 +277,13 @@ public class NewOnboardingController {
             Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeId(employeeId);
             if (employeeOpt.isEmpty()) {
                 logger.error("Employee not found: {}", employeeId);
-                ra.addFlashAttribute("error", "❌ Employee not found: " + employeeId);
+                if (isAjax) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                            "success", false,
+                            "error", "Employee not found: " + employeeId
+                    ));
+                }
+                ra.addFlashAttribute("error", "Employee not found: " + employeeId);
                 return "redirect:/onboarding";
             }
 
@@ -263,22 +296,38 @@ public class NewOnboardingController {
             OnboardingDocument document = documentService.hrUploadDocument(
                     employeeId, documentType, file, notes, hrUserName);
 
-            logger.info("✅ HR Document uploaded and auto-verified: ID={}, Type={}",
+            logger.info("✅ Document uploaded and auto-verified: ID={}, Type={}",
                     document.getId(), documentType);
 
-            ra.addFlashAttribute("success",
-                    "✅ Document uploaded and verified by " + hrUserName + "!");
+            // Return AJAX response or redirect
+            if (isAjax) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "documentId", document.getId(),
+                        "documentName", document.getDocumentName(),
+                        "status", document.getStatus(),
+                        "message", "Document uploaded and verified by " + hrUserName + "!"
+                ));
+            }
 
+            ra.addFlashAttribute("success",
+                    "Document uploaded and verified by " + hrUserName + "!");
             return "redirect:/onboarding/employee/" + employeeId;
 
         } catch (Exception e) {
-            logger.error("❌ HR upload failed: {}", e.getMessage(), e);
-            ra.addFlashAttribute("error", "❌ Upload failed: " + e.getMessage());
+            logger.error("Upload failed: {}", e.getMessage(), e);
+            if (isAjax) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                        "success", false,
+                        "error", e.getMessage()
+                ));
+            }
+            ra.addFlashAttribute("error", "Upload failed: " + e.getMessage());
             return "redirect:/onboarding/employee/" + employeeId + "/upload/" + documentType;
         }
     }
 
-    /* ========== DEBUG ENDPOINTS ========== */
+    /* ---------- DEBUG ENDPOINTS ---------- */
     @GetMapping("/debug/employees")
     @ResponseBody
     public List<Map<String, Object>> debugEmployees() {
@@ -330,6 +379,7 @@ public class NewOnboardingController {
         return "Employee not found";
     }
 
+    /* ---------- INITIALIZE ONBOARDING (Form-based - existing) ---------- */
     @PostMapping("/employee/{employeeId}/initialize")
     public String initializeOnboarding(@PathVariable String employeeId, RedirectAttributes ra) {
         try {
@@ -345,6 +395,46 @@ public class NewOnboardingController {
             ra.addFlashAttribute("error", "Failed to initialize onboarding: " + e.getMessage());
         }
         return "redirect:/onboarding/employee/" + employeeId;
+    }
+
+    /* ---------- INITIALIZE ONBOARDING (JSON API - different URL) ---------- */
+    @PostMapping("/employee/{employeeId}/initialize-api")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> initializeOnboardingApi(
+            @PathVariable String employeeId) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeId(employeeId);
+
+            if (employeeOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("error", "Employee not found");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Employee employee = employeeOpt.get();
+
+            // Initialize document checklist
+            documentService.initializeDocumentChecklist(employee);
+
+            // Update employee status
+            employee.setOnboardingStatus("DOCUMENTS_PENDING");
+            employeeService.saveEmployee(employee);
+
+            response.put("success", true);
+            response.put("message", "Onboarding initialized successfully");
+            response.put("employeeId", employeeId);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Error initializing onboarding for {}: {}", employeeId, e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     /* ---------- HR UPLOAD DOCUMENT (REAL-TIME) ---------- */
@@ -545,13 +635,71 @@ public class NewOnboardingController {
             if (session.getAttribute("userId") == null && backupUserId != null) {
                 session.setAttribute("userId", backupUserId);
                 session.setAttribute("userRole", backupUserRole);
-                session.setAttribute("userName", backupUserName);
-            }
+                session.setAttribute("userName", backupUserName);            }
 
             return ResponseEntity.badRequest().body(response);
         }
     }
-    // ADD this method at the end of NewOnboardingController class
+
+    /* ---------- GET DOCUMENTS LIST FOR EMPLOYEE (JSON API) ---------- */
+    @GetMapping("/employee/{employeeId}/documents-list")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getDocumentsList(@PathVariable String employeeId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeId(employeeId);
+
+            if (employeeOpt.isEmpty()) {
+                response.put("success", false);
+                response.put("error", "Employee not found");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            Employee employee = employeeOpt.get();
+
+            // Initialize documents if not already done
+            List<OnboardingDocument> documents = documentService.getDocumentsByEmployee(employee);
+
+            if (documents.isEmpty()) {
+                // Auto-initialize if empty
+                documentService.initializeDocumentChecklist(employee);
+                documents = documentService.getDocumentsByEmployee(employee);
+            }
+
+            // Convert to simplified format for frontend
+            List<Map<String, Object>> docsList = documents.stream().map(doc -> {
+                Map<String, Object> docMap = new HashMap<>();
+                docMap.put("id", doc.getId());
+                docMap.put("documentType", doc.getDocumentType());
+                docMap.put("documentName", doc.getDocumentName());
+                docMap.put("description", doc.getDescription());
+                docMap.put("mandatory", doc.isMandatory());
+                docMap.put("status", doc.getStatus());
+                docMap.put("submittedDate", doc.getSubmittedDate());
+                docMap.put("filePath", doc.getFilePath());
+                return docMap;
+            }).collect(Collectors.toList());
+
+            response.put("success", true);
+            response.put("documents", docsList);
+            response.put("employeeId", employeeId);
+            response.put("employeeName", employee.getFirstName() + " " + employee.getLastName());
+            response.put("totalDocuments", documents.size());
+            response.put("submittedDocuments",
+                    documents.stream().filter(d -> d.getStatus().equals("SUBMITTED") || d.getStatus().equals("VERIFIED")).count());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            logger.error("Error getting documents list for {}: {}", employeeId, e.getMessage());
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /* ---------- GET DOCUMENTS FRAGMENT (FOR AJAX REFRESH) ---------- */
     @GetMapping("/employee/{employeeId}/documents-fragment")
     @ResponseBody
     public String getDocumentsFragment(@PathVariable String employeeId) {
@@ -644,7 +792,8 @@ public class NewOnboardingController {
             return "<tr><td colspan='5' style='text-align: center; padding: 20px; color: #ef4444;'><i class='fas fa-exclamation-triangle'></i> Error loading documents</td></tr>";
         }
     }
-    /* ---------- DOWNLOAD DOCUMENT (NEW ENDPOINTS) ---------- */
+
+    /* ---------- DOWNLOAD DOCUMENT ---------- */
     @GetMapping("/employee/{employeeId}/download/{documentId}")
     @ResponseBody
     @Transactional(readOnly = true)
@@ -736,14 +885,8 @@ public class NewOnboardingController {
 
         return progress;
     }
-    // ✅ ADD THIS METHOD to NewOnboardingController
 
-    // ✅ Add this at the end of NewOnboardingController class
-
-    /**
-     * Sets document deadline for employee onboarding
-     * POST /onboarding/employee/{employeeId}/set-deadline
-     */
+    /* ---------- SET DEADLINE ---------- */
     @PostMapping("/employee/{employeeId}/set-deadline")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> setDeadline(
@@ -769,29 +912,26 @@ public class NewOnboardingController {
             employeeService.saveEmployee(employee);
 
             response.put("success", true);
-            response.put("message", "✅ Deadline set successfully");
+            response.put("message", "Deadline set successfully");
             response.put("deadline", deadlineDateTime.toString());
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            logger.error("❌ Failed to set deadline: {}", e.getMessage(), e);
+            logger.error("Failed to set deadline: {}", e.getMessage(), e);
             response.put("success", false);
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
 
-    /**
-     * Test endpoint to quickly set a deadline (2 days from now)
-     * GET /onboarding/employee/{employeeId}/set-deadline-test
-     */
+    /* ---------- TEST DEADLINE ---------- */
     @GetMapping("/employee/{employeeId}/set-deadline-test")
     @ResponseBody
     public String setTestDeadline(@PathVariable String employeeId) {
         try {
             Optional<Employee> empOpt = employeeService.getEmployeeByEmployeeId(employeeId);
-            if (empOpt.isEmpty()) return "❌ Employee not found";
+            if (empOpt.isEmpty()) return "Employee not found";
 
             Employee employee = empOpt.get();
             employee.setDocumentDeadline(LocalDateTime.now().plusDays(2));
@@ -799,11 +939,13 @@ public class NewOnboardingController {
             employee.setDeadlineFinalSent(false);
             employeeService.saveEmployee(employee);
 
-            return "✅ Deadline set to 2 days from now for " + employeeId;
+            return "Deadline set to 2 days from now for " + employeeId;
         } catch (Exception e) {
-            return "❌ Error: " + e.getMessage();
+            return "Error: " + e.getMessage();
         }
     }
+
+    /* ---------- TEST NOTIFICATION ---------- */
     @GetMapping("/debug/send-test-notification/{employeeId}")
     @ResponseBody
     public String sendTestNotification(@PathVariable String employeeId) {
@@ -811,13 +953,11 @@ public class NewOnboardingController {
             Employee employee = employeeService.getEmployeeByEmployeeId(employeeId)
                     .orElseThrow(() -> new RuntimeException("Employee not found"));
 
-            // Send 24-hour warning test
             notificationService.notifyDeadlineApproaching(employee, 24);
 
-            return "✅ Test notification sent to " + employeeId +
-                    " (check your notification dropdown and toast)";
+            return "Test notification sent to " + employeeId;
         } catch (Exception e) {
-            return "❌ Error: " + e.getMessage();
+            return "Error: " + e.getMessage();
         }
     }
 

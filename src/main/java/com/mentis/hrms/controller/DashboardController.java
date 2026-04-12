@@ -21,12 +21,16 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.bind.annotation.ResponseBody;
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
+import com.mentis.hrms.model.Department;
+import com.mentis.hrms.model.Designation;
 @Controller
 @RequestMapping("/dashboard")
 public class DashboardController implements WebMvcConfigurer {
@@ -113,18 +117,16 @@ public class DashboardController implements WebMvcConfigurer {
         }
     }
 
-    /* ---------- MAIN DASHBOARD - FIXED SIGNATURE ---------- */
+    /* ---------- MAIN DASHBOARD ---------- */
     @GetMapping
     public String showDashboard(Model model, HttpSession session, RedirectAttributes ra) {
         logger.info("=== LOADING DASHBOARD ===");
 
-        // ========== CHECK AUTHENTICATION ==========
         if (session.getAttribute("userId") == null) {
             ra.addFlashAttribute("error", "Session expired. Please login again.");
             return "redirect:/candidate/login";
         }
 
-        // ========== CHECK LOGIN TYPE ==========
         String loginType = (String) session.getAttribute("loginType");
         String role = (String) session.getAttribute("userRole");
         String empId = (String) session.getAttribute("userId");
@@ -139,35 +141,8 @@ public class DashboardController implements WebMvcConfigurer {
             return "redirect:/candidate/dashboard/" + empId;
         }
 
-        // ========== LOAD DASHBOARD DATA ==========
-        dashboardService.loadDashboardData(model);
-
-        // ========== ADD HR ATTRIBUTES ==========
-        model.addAttribute("isHR", true);
-        model.addAttribute("isSuperAdmin", "SUPER_ADMIN".equals(role));
-        model.addAttribute("userRole", role);
-        model.addAttribute("userName", session.getAttribute("userName"));
-
-        // Add onboarding counts for sidebar badge
-        try {
-            List<Employee> allEmployees = employeeService.getAllEmployees();
-            int totalPending = allEmployees.stream()
-                    .filter(emp -> {
-                        String status = emp.getOnboardingStatus();
-                        return status != null && (status.equals("NOT_STARTED") ||
-                                status.equals("DOCUMENTS_PENDING") ||
-                                status.equals("DOCUMENTS_SUBMITTED"));
-                    })
-                    .collect(Collectors.toList()).size();
-            model.addAttribute("totalPending", totalPending);
-        } catch (Exception e) {
-            logger.warn("Could not load onboarding count: {}", e.getMessage());
-            model.addAttribute("totalPending", 0);
-        }
-
-        logger.info("✅ Dashboard loaded for user: {} (Role: {})",
-                session.getAttribute("userName"), role);
-        return "dashboard";
+        // Redirect to HR dashboard
+        return "redirect:/dashboard/hr";
     }
 
     /* ========== APPLICATION MANAGEMENT ========== */
@@ -176,7 +151,6 @@ public class DashboardController implements WebMvcConfigurer {
                                    Model model, HttpSession session) {
         logger.info("=== LOADING APPLICATIONS PAGE (Status: {}) ===", status);
 
-        // ===== ADDED: Check login type =====
         String loginType = (String) session.getAttribute("loginType");
         if (!"HR_ADMIN".equals(loginType)) {
             logger.warn("Non-HR/Admin trying to access dashboard: {}", loginType);
@@ -184,7 +158,7 @@ public class DashboardController implements WebMvcConfigurer {
             if (empId != null) {
                 return "redirect:/candidate/dashboard/" + empId;
             }
-            return "redirect:/candidate/login?error=Access+denied"; // Use consistent URL
+            return "redirect:/candidate/login?error=Access+denied";
         }
 
         try {
@@ -220,7 +194,6 @@ public class DashboardController implements WebMvcConfigurer {
     public String viewApplicationDetails(@PathVariable("id") Long applicationId, Model model, HttpSession session) {
         logger.info("=== VIEW APPLICATION DETAILS FOR ID: {} ===", applicationId);
 
-        // ===== ADD THIS SECURITY CHECK =====
         String loginType = (String) session.getAttribute("loginType");
         if (!"HR_ADMIN".equals(loginType)) {
             return "redirect:/candidate/login?error=Access+denied";
@@ -231,9 +204,63 @@ public class DashboardController implements WebMvcConfigurer {
             if (app == null) {
                 return "redirect:/dashboard?error=Application+not+found";
             }
+
+            // ============ ADD ALL REQUIRED MODEL ATTRIBUTES ============
             model.addAttribute("application", app);
+            model.addAttribute("applicationId", applicationId);
+            model.addAttribute("jobTitle", app.getJobTitle() != null ? app.getJobTitle() : "Position Not Specified");
+            model.addAttribute("jobDepartment", app.getJobDepartment() != null ? app.getJobDepartment() : "Not specified");
+            model.addAttribute("jobType", app.getJobType() != null ? app.getJobType() : "Not specified");
+            model.addAttribute("jobLocation", app.getJobLocation() != null ? app.getJobLocation() : "Not specified");
+            model.addAttribute("formattedApplicationDate", app.getFormattedApplicationDate());
+            model.addAttribute("email", app.getEmail() != null ? app.getEmail() : "");
+            model.addAttribute("phone", app.getPhone() != null ? app.getPhone() : "");
+            model.addAttribute("linkedinProfile", app.getLinkedinProfile());
+            model.addAttribute("experience", app.getExperience() != null ? app.getExperience() : "Not specified");
+            model.addAttribute("coverLetter", app.getCoverLetter());
+
+            // ============ RESUME ATTRIBUTES ============
+            boolean hasResume = app.getResumePath() != null && !app.getResumePath().trim().isEmpty();
+            boolean resumeExists = false;
+            String resumeFileName = null;
+            String resumeFileSize = null;
+            String resumeFileType = null;
+
+            if (hasResume) {
+                try {
+                    Path filePath = Paths.get("C:/hrms/uploads").resolve(app.getResumePath()).normalize();
+                    resumeExists = Files.exists(filePath);
+                    if (resumeExists) {
+                        Path fileNamePath = Paths.get(app.getResumePath());
+                        resumeFileName = fileNamePath.getFileName().toString();
+                        File file = filePath.toFile();
+                        resumeFileSize = formatFileSize(file.length());
+
+                        String ext = resumeFileName.toLowerCase();
+                        if (ext.endsWith(".pdf")) {
+                            resumeFileType = "PDF";
+                        } else if (ext.endsWith(".jpg") || ext.endsWith(".jpeg") || ext.endsWith(".png")) {
+                            resumeFileType = "IMAGE";
+                        } else if (ext.endsWith(".doc") || ext.endsWith(".docx")) {
+                            resumeFileType = "DOCUMENT";
+                        } else {
+                            resumeFileType = "FILE";
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.warn("Could not check resume file: {}", e.getMessage());
+                }
+            }
+
+            model.addAttribute("hasResume", hasResume);
+            model.addAttribute("resumeExists", resumeExists);
+            model.addAttribute("resumeFileName", resumeFileName != null ? resumeFileName : "No resume");
+            model.addAttribute("resumeFileSize", resumeFileSize != null ? resumeFileSize : "0 B");
+            model.addAttribute("resumeFileType", resumeFileType != null ? resumeFileType : "UNKNOWN");
+
             model.addAttribute("offerCount", offerService.getOfferCount());
             return "application-details";
+
         } catch (Exception e) {
             logger.error("Error loading application {}: {}", applicationId, e.getMessage(), e);
             return "redirect:/dashboard?error=Failed+to+load+application+details";
@@ -266,7 +293,6 @@ public class DashboardController implements WebMvcConfigurer {
     public String showInterviewSchedule(@PathVariable("id") Long applicationId, Model model, HttpSession session) {
         logger.info("=== LOADING INTERVIEW SCHEDULE PAGE FOR APPLICATION {} ===", applicationId);
 
-        // ===== ADD THIS SECURITY CHECK =====
         String loginType = (String) session.getAttribute("loginType");
         if (!"HR_ADMIN".equals(loginType)) {
             return "redirect:/candidate/login?error=Access+denied";
@@ -320,7 +346,6 @@ public class DashboardController implements WebMvcConfigurer {
     public String showJobForm(Model model, HttpSession session, @RequestParam(value = "id", required = false) Long jobId) {
         logger.info("=== LOADING JOB FORM ===");
 
-        // ===== ADD THIS SECURITY CHECK =====
         String loginType = (String) session.getAttribute("loginType");
         if (!"HR_ADMIN".equals(loginType)) {
             logger.warn("🚨 Unauthorized access attempt to job form by login type: {}", loginType);
@@ -374,10 +399,24 @@ public class DashboardController implements WebMvcConfigurer {
             job.setResponsibilitiesFromString(responsibilities);
             job.setApplicationInstructions(applicationInstructions);
             job.setActive(true);
-            if (jobId == null) job.setPostedDate(java.time.LocalDate.now());
 
-            jobService.saveJob(job);
+            if (jobId == null) {
+                job.setPostedDate(java.time.LocalDate.now());
+            }
+
+            // Parse deadline if provided
+            if (applicationDeadlineStr != null && !applicationDeadlineStr.isEmpty()) {
+                job.setApplicationDeadline(java.time.LocalDate.parse(applicationDeadlineStr));
+            }
+
+            Job savedJob = jobService.saveJob(job);
+
+            // Add flash attributes for success popup
+            ra.addFlashAttribute("showSuccessPopup", true);
+            ra.addFlashAttribute("jobTitle", savedJob.getTitle());
+            ra.addFlashAttribute("jobId", savedJob.getId());
             ra.addFlashAttribute("success", "Job posted successfully!");
+
             return "redirect:/dashboard/job-form";
         } catch (Exception e) {
             logger.error("Error posting job: {}", e.getMessage(), e);
@@ -403,7 +442,6 @@ public class DashboardController implements WebMvcConfigurer {
     public String viewJob(@PathVariable("id") Long jobId, Model model, HttpSession session) {
         logger.info("=== VIEWING JOB DETAILS ID: {} ===", jobId);
 
-        // ===== ADD THIS SECURITY CHECK =====
         String loginType = (String) session.getAttribute("loginType");
         if (!"HR_ADMIN".equals(loginType)) {
             return "redirect:/candidate/login?error=Access+denied";
@@ -426,7 +464,6 @@ public class DashboardController implements WebMvcConfigurer {
     public String showOfferCandidates(Model model, HttpSession session) {
         logger.info("=== LOADING OFFER CANDIDATES PAGE ===");
 
-        // ===== ADD THIS SECURITY CHECK =====
         String loginType = (String) session.getAttribute("loginType");
         if (!"HR_ADMIN".equals(loginType)) {
             logger.warn("🚨 Unauthorized access attempt to offer candidates by login type: {}", loginType);
@@ -583,7 +620,128 @@ public class DashboardController implements WebMvcConfigurer {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    /* ========== DEPARTMENT API ENDPOINTS ========== */
 
+    @GetMapping("/api/departments/all")
+    @ResponseBody
+    public ResponseEntity<?> getAllDepartmentsApi() {
+        try {
+            logger.info("Fetching all departments with designations");
+            List<Department> departments = departmentService.getAllDepartmentsWithDesignations();
+
+            // Transform to a simpler format for frontend
+            List<Map<String, Object>> deptList = departments.stream().map(dept -> {
+                Map<String, Object> deptMap = new HashMap<>();
+                deptMap.put("id", dept.getId());
+                deptMap.put("name", dept.getName());
+
+                // Get designations
+                List<Map<String, Object>> desList = dept.getDesignations().stream().map(des -> {
+                    Map<String, Object> desMap = new HashMap<>();
+                    desMap.put("id", des.getId());
+                    desMap.put("name", des.getName());
+                    return desMap;
+                }).collect(Collectors.toList());
+
+                deptMap.put("designations", desList);
+                return deptMap;
+            }).collect(Collectors.toList());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "departments", deptList
+            ));
+        } catch (Exception e) {
+            logger.error("Error fetching departments: {}", e.getMessage(), e);
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/api/departments/create")
+    @ResponseBody
+    public ResponseEntity<?> createDepartmentApi(@RequestBody Map<String, Object> request) {
+        try {
+            String departmentName = (String) request.get("departmentName");
+            String designationName = (String) request.get("designationName");
+
+            if (departmentName == null || departmentName.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "error", "Department name is required"
+                ));
+            }
+
+            Department existingDept = departmentService.getDepartmentByName(departmentName);
+            if (existingDept != null) {
+                return ResponseEntity.ok(Map.of(
+                        "success", false,
+                        "error", "Department already exists"
+                ));
+            }
+
+            Department department = new Department();
+            department.setName(departmentName);
+
+            if (designationName != null && !designationName.trim().isEmpty()) {
+                Designation designation = new Designation();
+                designation.setName(designationName);
+                designation.setDepartment(department);
+                department.getDesignations().add(designation);
+            }
+
+            Department savedDept = departmentService.saveDepartment(department);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Department created successfully",
+                    "department", savedDept
+            ));
+        } catch (Exception e) {
+            logger.error("Error creating department: {}", e.getMessage(), e);
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/api/departments/{departmentName}/designations")
+    @ResponseBody
+    public ResponseEntity<?> getDesignationsByDepartmentApi(@PathVariable String departmentName) {
+        try {
+            logger.info("Fetching designations for department: {}", departmentName);
+
+            Department department = departmentService.getDepartmentByNameWithDesignations(departmentName);
+
+            if (department == null) {
+                return ResponseEntity.ok(Map.of(
+                        "success", false,
+                        "error", "Department not found: " + departmentName
+                ));
+            }
+
+            List<Map<String, Object>> designations = department.getDesignations().stream().map(des -> {
+                Map<String, Object> desMap = new HashMap<>();
+                desMap.put("id", des.getId());
+                desMap.put("name", des.getName());
+                return desMap;
+            }).collect(Collectors.toList());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "designations", designations
+            ));
+        } catch (Exception e) {
+            logger.error("Error fetching designations: {}", e.getMessage(), e);
+            return ResponseEntity.ok(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+            ));
+        }
+    }
     /* ========== HELPER METHODS ========== */
     private String extractResumeFileName(String resumePath) {
         if (resumePath == null || resumePath.trim().isEmpty()) return "document.pdf";
@@ -601,6 +759,14 @@ public class DashboardController implements WebMvcConfigurer {
         if (lower.endsWith(".png")) return "image/png";
         if (lower.endsWith(".txt")) return "text/plain";
         return "application/octet-stream";
+    }
+
+    private String formatFileSize(long size) {
+        if (size < 0) return "0 B";
+        if (size < 1024) return size + " B";
+        int exp = (int) (Math.log(size) / Math.log(1024));
+        String pre = "KMGTPE".charAt(exp-1) + "";
+        return String.format("%.1f %sB", size / Math.pow(1024, exp), pre);
     }
 
     @ExceptionHandler(Exception.class)

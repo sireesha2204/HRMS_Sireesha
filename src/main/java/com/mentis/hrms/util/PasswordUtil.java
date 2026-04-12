@@ -17,10 +17,10 @@ public class PasswordUtil {
             byte[] hash = digest.digest(rawPassword.getBytes(StandardCharsets.UTF_8));
             String encoded = Base64.getEncoder().encodeToString(hash);
 
-            System.out.println("[DEBUG] PasswordUtil: Encoded password");
-            System.out.println("[DEBUG]   Input: " + rawPassword);
-            System.out.println("[DEBUG]   Output (first 20 chars): " +
-                    encoded.substring(0, Math.min(20, encoded.length())) + "...");
+            System.out.println("🔐 [PasswordUtil] encodePassword called");
+            System.out.println("   Input: '" + rawPassword + "'");
+            System.out.println("   Output (full): '" + encoded + "'");
+            System.out.println("   Output length: " + encoded.length());
 
             return encoded;
         } catch (Exception e) {
@@ -35,17 +35,28 @@ public class PasswordUtil {
 
     public boolean matchesPassword(String rawPassword, String storedPassword) {
         if (rawPassword == null || storedPassword == null) {
-            System.out.println("[DEBUG] Null password comparison");
+            System.out.println("🔐 [PasswordUtil] Null password comparison");
             return false;
         }
+
+        System.out.println("\n🔐 [PasswordUtil] matchesPassword called");
+        System.out.println("   Raw input: '" + rawPassword + "'");
+        System.out.println("   Stored: '" + storedPassword + "'");
+        System.out.println("   Stored length: " + storedPassword.length());
 
         String encodedInput = encodePassword(rawPassword);
         boolean matches = encodedInput.equals(storedPassword);
 
-        System.out.println("[DEBUG] PasswordUtil: Password match = " + matches);
-        System.out.println("[DEBUG]   Raw input: " + rawPassword);
-        System.out.println("[DEBUG]   Stored: " + storedPassword);
-        System.out.println("[DEBUG]   Encoded input: " + encodedInput);
+        System.out.println("   Encoded input: '" + encodedInput + "'");
+        System.out.println("   Encoded input length: " + encodedInput.length());
+        System.out.println("   Match result: " + matches);
+
+        if (!matches && storedPassword.length() < 60) {
+            // Try with empty string (for first login)
+            String emptyEncoded = encodePassword("");
+            boolean emptyMatches = emptyEncoded.equals(storedPassword);
+            System.out.println("   Empty password matches? " + emptyMatches);
+        }
 
         return matches;
     }

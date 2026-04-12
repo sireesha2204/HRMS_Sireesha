@@ -3,7 +3,6 @@ package com.mentis.hrms.model;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 @Entity
 @Table(name = "attendance")
@@ -37,8 +36,17 @@ public class Attendance {
     @Column(name = "total_working_minutes")
     private Integer totalWorkingMinutes = 0;
 
+    @Column(name = "total_working_hours")
+    private String totalWorkingHours;
+
     @Column(name = "status", length = 20)
-    private String status = "OFFLINE"; // ACTIVE, OFFLINE, BREAK
+    private String status = "OFFLINE";
+
+    @Column(name = "session_number")
+    private Integer sessionNumber = 1;
+
+    @Column(name = "is_active_session")
+    private Boolean isActiveSession = true;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -46,7 +54,6 @@ public class Attendance {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    // Transient field for real-time calculations
     @Transient
     private String currentSessionTime;
 
@@ -86,8 +93,17 @@ public class Attendance {
     public Integer getTotalWorkingMinutes() { return totalWorkingMinutes; }
     public void setTotalWorkingMinutes(Integer totalWorkingMinutes) { this.totalWorkingMinutes = totalWorkingMinutes; }
 
+    public String getTotalWorkingHours() { return totalWorkingHours; }
+    public void setTotalWorkingHours(String totalWorkingHours) { this.totalWorkingHours = totalWorkingHours; }
+
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public Integer getSessionNumber() { return sessionNumber; }
+    public void setSessionNumber(Integer sessionNumber) { this.sessionNumber = sessionNumber; }
+
+    public Boolean getIsActiveSession() { return isActiveSession; }
+    public void setIsActiveSession(Boolean isActiveSession) { this.isActiveSession = isActiveSession; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
@@ -101,5 +117,10 @@ public class Attendance {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    @Transient
+    public boolean isCheckedOut() {
+        return checkOutTime != null;
     }
 }

@@ -10,12 +10,14 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+
 @Service
 @Transactional
 public class DeadlineMonitorService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
     @Autowired
     private NotificationService notificationService;
 
@@ -49,48 +51,56 @@ public class DeadlineMonitorService {
     protected void processEmployeeDeadline(Employee employee) {
         if (employee.getDocumentDeadline() == null) return;
 
-        // Skip if all documents uploaded
-        if (employee.getSubmittedDocuments() >= employee.getTotalDocuments() && employee.getTotalDocuments() > 0) {
-            System.out.println("✅ Employee " + employee.getEmployeeId() + " has completed all documents - skipping");
+        // Skip if all documents are verified
+        if (employee.getVerifiedDocuments() >= employee.getTotalDocuments() && employee.getTotalDocuments() > 0) {
+            System.out.println("✅ Employee " + employee.getEmployeeId() + " has all documents verified - skipping");
             return;
         }
 
+        LocalDateTime now = LocalDateTime.now();
         LocalDateTime deadline = employee.getDocumentDeadline();
-        long hoursUntilDeadline = ChronoUnit.HOURS.between(LocalDateTime.now(), deadline);
-        long daysUntilDeadline = ChronoUnit.DAYS.between(LocalDateTime.now(), deadline);
 
-        System.out.println("⏱️  Hours until deadline: " + hoursUntilDeadline);
+        long hoursUntilDeadline = ChronoUnit.HOURS.between(now, deadline);
+        long daysUntilDeadline = ChronoUnit.DAYS.between(now, deadline);
+
+        System.out.println("⏱️ Hours until deadline: " + hoursUntilDeadline);
 
         boolean warningSent = employee.isDeadlineWarningSent();
         boolean finalSent = employee.isDeadlineFinalSent();
         boolean needsUpdate = false;
 
-        // ✅ FIXED: Send notifications at 24h and overdue
+        // Check for overdue (deadline passed)
         if (hoursUntilDeadline <= 0 && !finalSent) {
-            // ⏰ OVERDUE
             System.out.println("🚨 OVERDUE - sending notification to: " + employee.getEmployeeId());
             notificationService.notifyDeadlineReached(employee);
-            warningSent = true;
-            finalSent = true;
+            employee.setDeadlineFinalSent(true);
             needsUpdate = true;
-        } else if (hoursUntilDeadline <= 24 && !finalSent) {
-            // ⚠️ 24 HOURS LEFT
-            System.out.println("⚠️  24-hour warning - sending notification to: " + employee.getEmployeeId());
+        }
+        // Check for 24 hours left
+        else if (hoursUntilDeadline <= 24 && hoursUntilDeadline > 0 && !warningSent) {
+            System.out.println("⚠️ 24-hour warning - sending notification to: " + employee.getEmployeeId());
             notificationService.notifyDeadlineApproaching(employee, 24);
-            warningSent = true;
-            finalSent = true; // Prevent duplicate warnings
+            employee.setDeadlineWarningSent(true);
+            needsUpdate = true;
+        }
+        // Check for 48 hours left (2 days)
+        else if (hoursUntilDeadline <= 48 && hoursUntilDeadline > 24 && !warningSent) {
+            System.out.println("⚠️ 48-hour warning - sending notification to: " + employee.getEmployeeId());
+            notificationService.notifyDeadlineApproaching(employee, 48);
+            employee.setDeadlineWarningSent(true);
+            needsUpdate = true;
+        }
+        // Check for 72 hours left (3 days)
+        else if (hoursUntilDeadline <= 72 && hoursUntilDeadline > 48 && !warningSent) {
+            System.out.println("⚠️ 72-hour warning - sending notification to: " + employee.getEmployeeId());
+            notificationService.notifyDeadlineApproaching(employee, 72);
+            employee.setDeadlineWarningSent(true);
             needsUpdate = true;
         }
 
         if (needsUpdate) {
-            updateDeadlineFlags(employee, warningSent, finalSent);
+            employeeRepository.save(employee);
+            System.out.println("📝 Flags updated for " + employee.getEmployeeId());
         }
-    }
-
-    private void updateDeadlineFlags(Employee employee, boolean warningSent, boolean finalSent) {
-        employee.setDeadlineWarningSent(warningSent);
-        employee.setDeadlineFinalSent(finalSent);
-        employeeRepository.save(employee);
-        System.out.println("📝 Flags updated for " + employee.getEmployeeId());
     }
 }

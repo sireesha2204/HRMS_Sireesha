@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Transient;
 @Entity
 @Table(name = "jobs")
 public class Job {
@@ -19,7 +21,15 @@ public class Job {
     private String title;
     private String department;
     private String jobType;
-    private String location;
+    // REPLACE WITH these two fields:
+    private String location; // Keep for backward compatibility
+
+    @ManyToOne
+    @JoinColumn(name = "location_id")
+    private Location jobLocation; // New relationship field
+
+    @Transient
+    private String locationDisplayName;
     private String experienceLevel;
     private String salaryRange;
     private LocalDate applicationDeadline;
@@ -56,6 +66,45 @@ public class Job {
         this.requirementList = new ArrayList<>();
         this.applications = new ArrayList<>();
     }
+// ========== NEW LOCATION RELATIONSHIP METHODS ==========
+
+    public Location getJobLocation() {
+        return jobLocation;
+    }
+
+    public void setJobLocation(Location jobLocation) {
+        this.jobLocation = jobLocation;
+        // Update the legacy location field for backward compatibility
+        if (jobLocation != null) {
+            this.location = jobLocation.getName() + " (" +
+                    (jobLocation.getCity() != null ? jobLocation.getCity() : "") +
+                    (jobLocation.getCity() != null && jobLocation.getCountry() != null ? ", " : "") +
+                    (jobLocation.getCountry() != null ? jobLocation.getCountry() : "") + ")";
+        }
+    }
+
+    // Helper method to get location ID (for form binding)
+    public Long getJobLocationId() {
+        return jobLocation != null ? jobLocation.getId() : null;
+    }
+
+    // Helper method to set location by ID (will be used in controller)
+    public void setJobLocationId(Long locationId) {
+        // This will be handled in controller
+        // Don't implement here
+    }
+
+    // Get display name for location
+    public String getLocationDisplayName() {
+        if (jobLocation != null) {
+            return jobLocation.getName() + " (" +
+                    (jobLocation.getCity() != null ? jobLocation.getCity() : "") +
+                    (jobLocation.getCity() != null && jobLocation.getCountry() != null ? ", " : "") +
+                    (jobLocation.getCountry() != null ? jobLocation.getCountry() : "") + ")";
+        }
+        return location;
+    }
+
 
     // Getters and setters
     public Long getId() {

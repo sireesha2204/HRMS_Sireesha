@@ -48,6 +48,7 @@ public class CandidateOnboardingController {
 
 
     // ADD THIS BACK - You need a GET handler for the login page
+    // In CandidateOnboardingController - KEEP ONLY THIS:
     @GetMapping("/login")
     public String showLoginPage(@RequestParam(value = "error", required = false) String error,
                                 @RequestParam(value = "logout", required = false) String logout,
@@ -77,124 +78,124 @@ public class CandidateOnboardingController {
 
     /*  ==================== 2. LOGIN PROCESS ====================  */
     /*  ==================== 2. LOGIN PROCESS (REWRITTEN) ====================  */
-    @PostMapping("/login")
-    public String processLogin(
-            @RequestParam String employeeId,
-            @RequestParam(required = false) String password,
-            jakarta.servlet.http.HttpServletRequest request,
-            RedirectAttributes ra) {
-
-        logger.info("=== LOGIN ATTEMPT: {} ===", employeeId);
-
-        try {
-            // 1. Fetch Employee
-            Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeId(employeeId);
-
-            if (employeeOpt.isEmpty()) {
-                ra.addFlashAttribute("error", "No account found with this Employee ID");
-                return "redirect:/candidate/login";
-            }
-
-            Employee employee = employeeOpt.get();
-
-            // 2. Check Account Status
-            if (!employee.isActive() && employee.getPassword() != null) {
-                ra.addFlashAttribute("error", "Your account is deactivated. Please contact HR.");
-                return "redirect:/candidate/login";
-            }
-
-            // 3. Check for First Time Login (No password set yet)
-            if (employee.getPassword() == null || employee.getPassword().isEmpty()) {
-                logger.info("First time login detected for: {}", employeeId);
-                // We use a clean session for password creation
-                jakarta.servlet.http.HttpSession tempSession = request.getSession(true);
-                tempSession.setAttribute("tempEmployeeId", employee.getEmployeeId());
-                return "redirect:/candidate/create-password";
-            }
-
-            // 4. Validate Password for Returning Users
-            if (password == null || password.trim().isEmpty()) {
-                ra.addFlashAttribute("error", "Please enter your password");
-                return "redirect:/candidate/login";
-            }
-
-            if (!passwordUtil.matchesPassword(password, employee.getPassword())) {
-                ra.addFlashAttribute("error", "Invalid Employee ID or password");
-                return "redirect:/candidate/login";
-            }
-
-            // 5. SESSION SECURITY: Invalidate old session and create a fresh one
-            // This prevents "Overlap" where one user's tab affects another's
-            jakarta.servlet.http.HttpSession existingSession = request.getSession(false);
-            if (existingSession != null) {
-                existingSession.invalidate();
-            }
-
-            jakarta.servlet.http.HttpSession newSession = request.getSession(true);
-
-            // 6. Set Standardized Session Attributes (Used by RoleInterceptor)
-            newSession.setAttribute("userId", employee.getEmployeeId());
-            newSession.setAttribute("userRole", employee.getRole().name()); // e.g., "HR", "EMPLOYEE"
-            newSession.setAttribute("userName", employee.getFirstName() + " " + employee.getLastName());
-
-            // Internal attributes for specific page logic
-            newSession.setAttribute("candidateEmployeeId", employee.getEmployeeId());
-            newSession.setMaxInactiveInterval(1800); // 30 minutes
-
-            logger.info("✅ Login Successful. User: {}, Role: {}", employeeId, employee.getRole());
-
-
-            /* ==================== ATTENDANCE AUTO CHECK-IN ==================== */
-            logger.info(">>> CHECK-IN START (OnboardingController): Employee {} with role {}", employeeId, employee.getRole().name());
-
-            try {
-                String roleName = employee.getRole().name();
-                String cleanRole = roleName.replace("ROLE_", "").toUpperCase();
-                boolean isEligible = "EMPLOYEE".equals(cleanRole) || "HR".equals(cleanRole);
-
-                if (isEligible) {
-                    Attendance attendance = attendanceService.checkIn(employeeId);
-                    newSession.setAttribute("todayAttendance", attendance);
-                    newSession.setAttribute("attendanceStatus", attendance.getStatus());
-
-                    if (attendance.getCheckInTime() != null) {
-                        long checkInMillis = attendance.getCheckInTime()
-                                .atZone(java.time.ZoneId.systemDefault())
-                                .toInstant()
-                                .toEpochMilli();
-                        newSession.setAttribute("checkInTimeMillis", checkInMillis);
-                    }
-                    logger.info(">>> CHECK-IN SUCCESS (OnboardingController): {}", attendance.getCheckInTime());
-                }
-            } catch (Exception e) {
-                logger.error(">>> CHECK-IN FAILED (OnboardingController): {}", e.getMessage());
-            }
-            /* ==================== END ATTENDANCE BLOCK ==================== */
-
-
-            // 7. Explicit Role-Based Redirection
-            // This ensures the user lands on the correct dashboard immediately
-            switch (employee.getRole()) {
-                case SUPER_ADMIN:
-                    return "redirect:/dashboard/admin";
-
-                case HR:
-                    return "redirect:/dashboard/hr";
-
-                case EMPLOYEE:
-                    return "redirect:/candidate/dashboard/" + employee.getEmployeeId();
-
-                default:
-                    logger.warn("Unknown role for user {}, defaulting to Employee dashboard", employeeId);
-                    return "redirect:/candidate/dashboard/" + employee.getEmployeeId();
-            }
-
-        } catch (Exception e) {
-            logger.error("❌ Login System Error: {}", e.getMessage(), e);
-            ra.addFlashAttribute("error", "An internal error occurred. Please try again.");
-            return "redirect:/candidate/login";
-        }
-    }
+//    @PostMapping("/login")
+//    public String processLogin(
+//            @RequestParam String employeeId,
+//            @RequestParam(required = false) String password,
+//            jakarta.servlet.http.HttpServletRequest request,
+//            RedirectAttributes ra) {
+//
+//        logger.info("=== LOGIN ATTEMPT: {} ===", employeeId);
+//
+//        try {
+//            // 1. Fetch Employee
+//            Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeId(employeeId);
+//
+//            if (employeeOpt.isEmpty()) {
+//                ra.addFlashAttribute("error", "No account found with this Employee ID");
+//                return "redirect:/candidate/login";
+//            }
+//
+//            Employee employee = employeeOpt.get();
+//
+//            // 2. Check Account Status
+//            if (!employee.isActive() && employee.getPassword() != null) {
+//                ra.addFlashAttribute("error", "Your account is deactivated. Please contact HR.");
+//                return "redirect:/candidate/login";
+//            }
+//
+//            // 3. Check for First Time Login (No password set yet)
+//            if (employee.getPassword() == null || employee.getPassword().isEmpty()) {
+//                logger.info("First time login detected for: {}", employeeId);
+//                // We use a clean session for password creation
+//                jakarta.servlet.http.HttpSession tempSession = request.getSession(true);
+//                tempSession.setAttribute("tempEmployeeId", employee.getEmployeeId());
+//                return "redirect:/candidate/create-password";
+//            }
+//
+//            // 4. Validate Password for Returning Users
+//            if (password == null || password.trim().isEmpty()) {
+//                ra.addFlashAttribute("error", "Please enter your password");
+//                return "redirect:/candidate/login";
+//            }
+//
+//            if (!passwordUtil.matchesPassword(password, employee.getPassword())) {
+//                ra.addFlashAttribute("error", "Invalid Employee ID or password");
+//                return "redirect:/candidate/login";
+//            }
+//
+//            // 5. SESSION SECURITY: Invalidate old session and create a fresh one
+//            // This prevents "Overlap" where one user's tab affects another's
+//            jakarta.servlet.http.HttpSession existingSession = request.getSession(false);
+//            if (existingSession != null) {
+//                existingSession.invalidate();
+//            }
+//
+//            jakarta.servlet.http.HttpSession newSession = request.getSession(true);
+//
+//            // 6. Set Standardized Session Attributes (Used by RoleInterceptor)
+//            newSession.setAttribute("userId", employee.getEmployeeId());
+//            newSession.setAttribute("userRole", employee.getRole().name()); // e.g., "HR", "EMPLOYEE"
+//            newSession.setAttribute("userName", employee.getFirstName() + " " + employee.getLastName());
+//
+//            // Internal attributes for specific page logic
+//            newSession.setAttribute("candidateEmployeeId", employee.getEmployeeId());
+//            newSession.setMaxInactiveInterval(1800); // 30 minutes
+//
+//            logger.info("✅ Login Successful. User: {}, Role: {}", employeeId, employee.getRole());
+//
+//
+//            /* ==================== ATTENDANCE AUTO CHECK-IN ==================== */
+//            logger.info(">>> CHECK-IN START (OnboardingController): Employee {} with role {}", employeeId, employee.getRole().name());
+//
+//            try {
+//                String roleName = employee.getRole().name();
+//                String cleanRole = roleName.replace("ROLE_", "").toUpperCase();
+//                boolean isEligible = "EMPLOYEE".equals(cleanRole) || "HR".equals(cleanRole);
+//
+//                if (isEligible) {
+//                    Attendance attendance = attendanceService.checkIn(employeeId);
+//                    newSession.setAttribute("todayAttendance", attendance);
+//                    newSession.setAttribute("attendanceStatus", attendance.getStatus());
+//
+//                    if (attendance.getCheckInTime() != null) {
+//                        long checkInMillis = attendance.getCheckInTime()
+//                                .atZone(java.time.ZoneId.systemDefault())
+//                                .toInstant()
+//                                .toEpochMilli();
+//                        newSession.setAttribute("checkInTimeMillis", checkInMillis);
+//                    }
+//                    logger.info(">>> CHECK-IN SUCCESS (OnboardingController): {}", attendance.getCheckInTime());
+//                }
+//            } catch (Exception e) {
+//                logger.error(">>> CHECK-IN FAILED (OnboardingController): {}", e.getMessage());
+//            }
+//            /* ==================== END ATTENDANCE BLOCK ==================== */
+//
+//
+//            // 7. Explicit Role-Based Redirection
+//            // This ensures the user lands on the correct dashboard immediately
+//            switch (employee.getRole()) {
+//                case SUPER_ADMIN:
+//                    return "redirect:/dashboard/admin";
+//
+//                case HR:
+//                    return "redirect:/dashboard/hr";
+//
+//                case EMPLOYEE:
+//                    return "redirect:/candidate/dashboard/" + employee.getEmployeeId();
+//
+//                default:
+//                    logger.warn("Unknown role for user {}, defaulting to Employee dashboard", employeeId);
+//                    return "redirect:/candidate/dashboard/" + employee.getEmployeeId();
+//            }
+//
+//        } catch (Exception e) {
+//            logger.error("❌ Login System Error: {}", e.getMessage(), e);
+//            ra.addFlashAttribute("error", "An internal error occurred. Please try again.");
+//            return "redirect:/candidate/login";
+//        }
+//    }
 
 
 
@@ -284,10 +285,19 @@ public class CandidateOnboardingController {
                                 HttpSession session,
                                 Model model) {
 
-        String sessionEmployeeId = (String) session.getAttribute("candidateEmployeeId");
+        // CHANGE FROM: candidateEmployeeId
+        // TO: userId (to match what CandidateAuthController sets)
+        String sessionEmployeeId = (String) session.getAttribute("userId");
+
         if (sessionEmployeeId == null || !sessionEmployeeId.equals(employeeId)) {
             session.invalidate();
             return "redirect:/candidate/login?error=Please+login+first";
+        }
+
+        // Also verify role
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"EMPLOYEE".equals(userRole) && !"HR".equals(userRole)) {
+            return "redirect:/candidate/login?error=Unauthorized";
         }
 
         Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeId(employeeId);

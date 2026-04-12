@@ -1,27 +1,36 @@
 package com.mentis.hrms.model;
 
-// Use jakarta.persistence instead of javax.persistence for Spring Boot 3.0+
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "departments")
 public class Department {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
     private String name;
+
+    @Column(length = 500)
     private String description;
 
-    @ElementCollection
-    private List<String> roles = new ArrayList<>();
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<Designation> designations = new ArrayList<>();
 
     // Constructors
     public Department() {}
 
-    // Getters and setters
+    public Department(String name) {
+        this.name = name;
+    }
+
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -46,11 +55,19 @@ public class Department {
         this.description = description;
     }
 
-    public List<String> getRoles() {
-        return roles;
+    public List<Designation> getDesignations() {
+        if (designations == null) {
+            designations = new ArrayList<>();
+        }
+        return designations;
     }
 
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
+    public void setDesignations(List<Designation> designations) {
+        this.designations = designations;
+    }
+
+    @Override
+    public String toString() {
+        return "Department{id=" + id + ", name='" + name + "'}";
     }
 }

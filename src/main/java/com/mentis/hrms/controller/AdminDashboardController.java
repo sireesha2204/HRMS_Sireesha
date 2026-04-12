@@ -41,7 +41,10 @@ public class AdminDashboardController {
 
         // Verify Super Admin role
         String role = (String) session.getAttribute("userRole");
+        System.out.println("AdminDashboardController - User role: " + role);
+
         if (!"SUPER_ADMIN".equals(role)) {
+            System.out.println("Unauthorized access attempt to admin dashboard by role: " + role);
             return "redirect:/candidate/login?error=Unauthorized";
         }
 
@@ -53,8 +56,8 @@ public class AdminDashboardController {
         model.addAttribute("userRole", role);
         model.addAttribute("userName", session.getAttribute("userName"));
 
-        // FIXED: Pass all required parameters to showDashboard()
-        return dashboardController.showDashboard(model, session, ra);
+        // Return the dashboard view (not redirect)
+        return "dashboard"; // This should be your dashboard.html template
     }
 
     private void loadSuperAdminStats(Model model) {

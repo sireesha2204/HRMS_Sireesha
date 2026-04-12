@@ -1,7 +1,9 @@
 package com.mentis.hrms.controller;
 
 import com.mentis.hrms.model.Job;
+import com.mentis.hrms.model.Location;  // Keep ONLY this Location import
 import com.mentis.hrms.service.JobService;
+import com.mentis.hrms.service.LocationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,9 @@ public class JobController {
     @Autowired
     private JobService jobService;
 
+    @Autowired
+    private LocationService locationService;
+
     @GetMapping
     public List<Job> getAllJobs() {
         return jobService.getAllJobs();
@@ -22,6 +27,12 @@ public class JobController {
     @PostMapping
     public Job createJob(@RequestBody Job job) {
         return jobService.saveJob(job);
+    }
+
+    // Add this method to your JobController
+    @ModelAttribute("locations")
+    public List<Location> getLocations() {
+        return locationService.getAllLocations();
     }
 
     @GetMapping("/{id}")

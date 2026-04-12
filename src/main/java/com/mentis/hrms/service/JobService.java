@@ -2,18 +2,21 @@ package com.mentis.hrms.service;
 
 import com.mentis.hrms.model.Job;
 import com.mentis.hrms.repository.JobRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
-import java.util.Optional;
-import java.util.ArrayList; // Add this import
-
+import java.util.List;
+import java.util.Optional;        // ← ADD THIS IMPORT
+import java.util.ArrayList;
 @Service
 public class JobService {
 
+    private static final Logger logger = LoggerFactory.getLogger(JobService.class);
     @Autowired
     private JobRepository jobRepository;
+
 
     public List<Job> getAllJobs() {
         try {
@@ -74,13 +77,23 @@ public class JobService {
     }
 
     public void deleteJob(Long id) {
+        logger.info("Deleting job with ID: {}", id);
         try {
-            if (!jobRepository.existsById(id)) {
-                throw new RuntimeException("Job with ID " + id + " does not exist");
+            Optional<Job> jobOptional = jobRepository.findById(id);
+            if (!jobOptional.isPresent()) {
+                logger.warn("Job not found with ID: {}", id);
+                throw new RuntimeException("Job not found with ID: " + id);
             }
-            jobRepository.deleteById(id);
+
+            // USE SOFT DELETE to prevent database constraint crashes
+            Job job = jobOptional.get();
+            job.setActive(false);
+            jobRepository.save(job);
+
+            logger.info("Job deleted successfully: {}", id);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to delete job with ID " + id + ": " + e.getMessage(), e);
+            logger.error("Error deleting job {}: {}", id, e.getMessage());
+            throw e;
         }
     }
 

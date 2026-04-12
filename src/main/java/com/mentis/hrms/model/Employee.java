@@ -1,12 +1,12 @@
 package com.mentis.hrms.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import com.mentis.hrms.model.enums.UserRole;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
+
 @Entity
 @Table(name = "employees")
 public class Employee {
@@ -15,25 +15,62 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Basic Information
+    // ============================================
+    // BASIC INFORMATION
+    // ============================================
+
+    @Column(name = "employee_id", nullable = false, unique = true)
     private String employeeId;
+
+    @Column(name = "employee_name")
     private String employeeName;
+
+    @Column(name = "first_name")
     private String firstName;
+
+    @Column(name = "last_name")
     private String lastName;
+
+    @Column(name = "personal_email")
     private String personalEmail;
+
+    @Column(name = "email", nullable = false)
     private String email;
+
+    @Column(name = "phone")
     private String phone;
-    private LocalDateTime dateOfBirth;
+
+    // ✅ FIXED: Changed from LocalDateTime to LocalDate to match EmployeeFormDTO
+    // Database column is DATETIME, but we only store date part
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+
+    @Column(name = "gender")
     private String gender;
 
-    // Legacy Address Fields (for backward compatibility)
+    // ============================================
+    // LEGACY ADDRESS FIELDS (Backward Compatibility)
+    // ============================================
+
+    @Column(name = "address")
     private String address;
+
+    @Column(name = "city")
     private String city;
+
+    @Column(name = "state")
     private String state;
+
+    @Column(name = "zip_code")
     private String zipCode;
+
+    @Column(name = "country")
     private String country;
 
-    // Permanent Address Fields
+    // ============================================
+    // PERMANENT ADDRESS FIELDS
+    // ============================================
+
     @Column(name = "permanent_address")
     private String permanentAddress;
 
@@ -48,7 +85,11 @@ public class Employee {
 
     @Column(name = "permanent_country")
     private String permanentCountry;
-    // ✅ REPLACE THIS SECTION (remove @NotBlank and any other annotations)
+
+    // ============================================
+    // DOCUMENT DEADLINE FIELDS
+    // ============================================
+
     @Column(name = "document_deadline")
     private LocalDateTime documentDeadline;
 
@@ -57,7 +98,11 @@ public class Employee {
 
     @Column(name = "deadline_final_sent", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean deadlineFinalSent = false;
-    // Residential Address Fields
+
+    // ============================================
+    // RESIDENTIAL ADDRESS FIELDS
+    // ============================================
+
     @Column(name = "residential_address")
     private String residentialAddress;
 
@@ -72,97 +117,164 @@ public class Employee {
 
     @Column(name = "residential_country")
     private String residentialCountry;
+
+    // ============================================
+    // ADDRESS TYPE (NEW FIELD - was missing)
+    // ============================================
+
+    @Column(name = "address_type", length = 20)
+    private String addressType;  // "same" or "different"
+
+    // ============================================
+    // PRESENCE STATUS FIELDS
+    // ============================================
+
     @Column(name = "presence_status", length = 20)
-    private String presenceStatus = "OFFLINE";   // OFFLINE / ACTIVE / BREAK
+    private String presenceStatus = "OFFLINE";
 
     @Column(name = "last_presence_update")
-    private java.time.LocalDateTime lastPresenceUpdate;
+    private LocalDateTime lastPresenceUpdate;
 
-    @Column(name = "role", nullable = false, length = 20)
-
-    // Add to com.mentis.hrms.model.Employee
-
+    // ============================================
+    // ROLE FIELD
+    // ============================================
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
     private UserRole role = UserRole.EMPLOYEE;
 
-    // Add getter and setter
-    public UserRole getRole() {
-        return role;
-    }
+    // ============================================
+    // JOB INFORMATION
+    // ============================================
 
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
-    public String getPresenceStatus(){ return presenceStatus; }
-    public void setPresenceStatus(String s){ this.presenceStatus=s; }
-
-    public java.time.LocalDateTime getLastPresenceUpdate(){ return lastPresenceUpdate; }
-    public void setLastPresenceUpdate(java.time.LocalDateTime t){ this.lastPresenceUpdate=t; }
-    // Job Information
+    @Column(name = "department")
     private String department;
+
+    @Column(name = "designation")
     private String designation;
-    // profile-color support
-    private String profileColor;
 
-
-    // Getters and Setters
-    public LocalDateTime getDocumentDeadline() { return documentDeadline; }
-    public void setDocumentDeadline(LocalDateTime documentDeadline) { this.documentDeadline = documentDeadline; }
-
-    public boolean isDeadlineWarningSent() { return deadlineWarningSent; }
-    public void setDeadlineWarningSent(boolean deadlineWarningSent) { this.deadlineWarningSent = deadlineWarningSent; }
-
-    public boolean isDeadlineFinalSent() { return deadlineFinalSent; }
-    public void setDeadlineFinalSent(boolean deadlineFinalSent) { this.deadlineFinalSent = deadlineFinalSent; }
-
-
-    public String getProfileColor() { return profileColor; }
-    public void setProfileColor(String profileColor) { this.profileColor = profileColor; }
+    @Column(name = "work_location")
     private String workLocation;
+
+    @Column(name = "employment_type")
     private String employmentType;
+
+    @Column(name = "work_type")
     private String workType;
-    private LocalDateTime startDate;
+
+    // ✅ FIXED: Changed from LocalDateTime to LocalDate to match EmployeeFormDTO
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "manager")
     private String manager;
 
-    // Compensation
+    // ============================================
+    // COMPENSATION
+    // ============================================
+
+    @Column(name = "salary")
     private String salary;
+
+    @Column(name = "pay_frequency")
     private String payFrequency;
+
+    @Column(name = "currency")
     private String currency;
 
-    // Benefits
+    // ============================================
+    // BENEFITS
+    // ============================================
+
     @ElementCollection
+    @CollectionTable(name = "employee_benefits", joinColumns = @JoinColumn(name = "employee_id"))
+    @Column(name = "benefit")
     private List<String> benefits = new ArrayList<>();
 
-    // Profile
+    // ============================================
+    // PROFILE
+    // ============================================
+
+    @Column(name = "profile_picture")
     private String profilePicture;
+
+    @Column(name = "profile_color", length = 7)
+    private String profileColor;
+
+    @Column(name = "status")
     private String status = "Active";
+
+    @Column(name = "created_date")
     private LocalDateTime createdDate = LocalDateTime.now();
+
+    @Column(name = "updated_date")
     private LocalDateTime updatedDate = LocalDateTime.now();
 
-    // Contact Information
+    // ============================================
+    // CONTACT INFORMATION
+    // ============================================
+
+    @Column(name = "emergency_contact")
     private String emergencyContact;
 
-    // Onboarding Fields
+    @Column(name = "linkedin")
+    private String linkedin;
+
+    // ============================================
+    // ONBOARDING FIELDS
+    // ============================================
+
+    @Column(name = "onboarding_status")
     private String onboardingStatus = "NOT_STARTED";
+
+    @Column(name = "onboarding_start_date")
     private LocalDateTime onboardingStartDate;
+
+    @Column(name = "onboarding_completed_date")
     private LocalDateTime onboardingCompletedDate;
+
+    @Column(name = "total_documents")
     private Integer totalDocuments = 0;
+
+    @Column(name = "submitted_documents")
     private Integer submittedDocuments = 0;
+
+    @Column(name = "verified_documents")
     private Integer verifiedDocuments = 0;
 
-    // Login Credentials
+    // ============================================
+    // LOGIN CREDENTIALS
+    // ============================================
+
+    @Column(name = "password")
     private String password;
+
+    @Column(name = "reset_token")
     private String resetToken;
+
+    @Column(name = "token_expiry")
     private LocalDateTime tokenExpiry;
+
+    @Column(name = "credentials_created")
     private boolean credentialsCreated = false;
+
+    @Column(name = "active")
     private boolean active = true;
 
-    // Onboarding Documents
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    // ============================================
+    // ONBOARDING DOCUMENTS RELATIONSHIP
+    // ============================================
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OnboardingDocument> documents = new ArrayList<>();
 
-    // Transient helper methods
+    // ============================================
+    // TRANSIENT HELPER METHODS
+    // ============================================
+
     @Transient
     public String getInitials() {
         String initials = "";
@@ -182,10 +294,13 @@ public class Employee {
 
     @Transient
     public String getFullName() {
-        return firstName + " " + lastName;
+        return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
     }
 
-    // Constructors
+    // ============================================
+    // CONSTRUCTORS
+    // ============================================
+
     public Employee() {}
 
     public Employee(String firstName, String lastName, String personalEmail) {
@@ -196,7 +311,10 @@ public class Employee {
         this.employeeName = firstName + " " + lastName;
     }
 
-    // Getters and Setters - Basic Info
+    // ============================================
+    // GETTERS AND SETTERS - BASIC INFO
+    // ============================================
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -220,28 +338,18 @@ public class Employee {
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
-    // Ensure dateOfBirth is properly handled
-    public LocalDateTime getDateOfBirth() {
-        return dateOfBirth;
-    }
 
-    public void setDateOfBirth(LocalDateTime dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
-
-    // Helper method for Thymeleaf to handle null dates
-    @Transient
-    public String getFormattedDateOfBirth() {
-        if (this.dateOfBirth == null) {
-            return "Not provided";
-        }
-        return this.dateOfBirth.format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy"));
-    }
+    // ✅ FIXED: LocalDate instead of LocalDateTime
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
 
     public String getGender() { return gender; }
     public void setGender(String gender) { this.gender = gender; }
 
-    // Getters and Setters - Legacy Address (for backward compatibility)
+    // ============================================
+    // GETTERS AND SETTERS - LEGACY ADDRESS
+    // ============================================
+
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
@@ -257,7 +365,10 @@ public class Employee {
     public String getCountry() { return country; }
     public void setCountry(String country) { this.country = country; }
 
-    // Getters and Setters - Permanent Address
+    // ============================================
+    // GETTERS AND SETTERS - PERMANENT ADDRESS
+    // ============================================
+
     public String getPermanentAddress() { return permanentAddress; }
     public void setPermanentAddress(String permanentAddress) { this.permanentAddress = permanentAddress; }
 
@@ -273,7 +384,23 @@ public class Employee {
     public String getPermanentCountry() { return permanentCountry; }
     public void setPermanentCountry(String permanentCountry) { this.permanentCountry = permanentCountry; }
 
-    // Getters and Setters - Residential Address
+    // ============================================
+    // GETTERS AND SETTERS - DOCUMENT DEADLINE
+    // ============================================
+
+    public LocalDateTime getDocumentDeadline() { return documentDeadline; }
+    public void setDocumentDeadline(LocalDateTime documentDeadline) { this.documentDeadline = documentDeadline; }
+
+    public boolean isDeadlineWarningSent() { return deadlineWarningSent; }
+    public void setDeadlineWarningSent(boolean deadlineWarningSent) { this.deadlineWarningSent = deadlineWarningSent; }
+
+    public boolean isDeadlineFinalSent() { return deadlineFinalSent; }
+    public void setDeadlineFinalSent(boolean deadlineFinalSent) { this.deadlineFinalSent = deadlineFinalSent; }
+
+    // ============================================
+    // GETTERS AND SETTERS - RESIDENTIAL ADDRESS
+    // ============================================
+
     public String getResidentialAddress() { return residentialAddress; }
     public void setResidentialAddress(String residentialAddress) { this.residentialAddress = residentialAddress; }
 
@@ -289,7 +416,34 @@ public class Employee {
     public String getResidentialCountry() { return residentialCountry; }
     public void setResidentialCountry(String residentialCountry) { this.residentialCountry = residentialCountry; }
 
-    // Getters and Setters - Job Info
+    // ============================================
+    // GETTERS AND SETTERS - ADDRESS TYPE (NEW)
+    // ============================================
+
+    public String getAddressType() { return addressType; }
+    public void setAddressType(String addressType) { this.addressType = addressType; }
+
+    // ============================================
+    // GETTERS AND SETTERS - PRESENCE STATUS
+    // ============================================
+
+    public String getPresenceStatus() { return presenceStatus; }
+    public void setPresenceStatus(String presenceStatus) { this.presenceStatus = presenceStatus; }
+
+    public LocalDateTime getLastPresenceUpdate() { return lastPresenceUpdate; }
+    public void setLastPresenceUpdate(LocalDateTime lastPresenceUpdate) { this.lastPresenceUpdate = lastPresenceUpdate; }
+
+    // ============================================
+    // GETTERS AND SETTERS - ROLE
+    // ============================================
+
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role; }
+
+    // ============================================
+    // GETTERS AND SETTERS - JOB INFO
+    // ============================================
+
     public String getDepartment() { return department; }
     public void setDepartment(String department) { this.department = department; }
 
@@ -305,13 +459,17 @@ public class Employee {
     public String getWorkType() { return workType; }
     public void setWorkType(String workType) { this.workType = workType; }
 
-    public LocalDateTime getStartDate() { return startDate; }
-    public void setStartDate(LocalDateTime startDate) { this.startDate = startDate; }
+    // ✅ FIXED: LocalDate instead of LocalDateTime
+    public LocalDate getStartDate() { return startDate; }
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
 
     public String getManager() { return manager; }
     public void setManager(String manager) { this.manager = manager; }
 
-    // Getters and Setters - Compensation
+    // ============================================
+    // GETTERS AND SETTERS - COMPENSATION
+    // ============================================
+
     public String getSalary() { return salary; }
     public void setSalary(String salary) { this.salary = salary; }
 
@@ -324,9 +482,15 @@ public class Employee {
     public List<String> getBenefits() { return benefits; }
     public void setBenefits(List<String> benefits) { this.benefits = benefits; }
 
-    // Getters and Setters - Profile
+    // ============================================
+    // GETTERS AND SETTERS - PROFILE
+    // ============================================
+
     public String getProfilePicture() { return profilePicture; }
     public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
+
+    public String getProfileColor() { return profileColor; }
+    public void setProfileColor(String profileColor) { this.profileColor = profileColor; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
@@ -337,11 +501,20 @@ public class Employee {
     public LocalDateTime getUpdatedDate() { return updatedDate; }
     public void setUpdatedDate(LocalDateTime updatedDate) { this.updatedDate = updatedDate; }
 
-    // Getters and Setters - Contact
+    // ============================================
+    // GETTERS AND SETTERS - CONTACT
+    // ============================================
+
     public String getEmergencyContact() { return emergencyContact; }
     public void setEmergencyContact(String emergencyContact) { this.emergencyContact = emergencyContact; }
 
-    // Getters and Setters - Onboarding
+    public String getLinkedin() { return linkedin; }
+    public void setLinkedin(String linkedin) { this.linkedin = linkedin; }
+
+    // ============================================
+    // GETTERS AND SETTERS - ONBOARDING
+    // ============================================
+
     public String getOnboardingStatus() { return onboardingStatus != null ? onboardingStatus : "NOT_STARTED"; }
     public void setOnboardingStatus(String onboardingStatus) { this.onboardingStatus = onboardingStatus; }
 
@@ -360,7 +533,10 @@ public class Employee {
     public Integer getVerifiedDocuments() { return verifiedDocuments != null ? verifiedDocuments : 0; }
     public void setVerifiedDocuments(Integer verifiedDocuments) { this.verifiedDocuments = verifiedDocuments; }
 
-    // Getters and Setters - Login Credentials
+    // ============================================
+    // GETTERS AND SETTERS - LOGIN CREDENTIALS
+    // ============================================
+
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
@@ -376,7 +552,13 @@ public class Employee {
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
 
-    // Getters and Setters - Documents
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    // ============================================
+    // GETTERS AND SETTERS - DOCUMENTS
+    // ============================================
+
     public List<OnboardingDocument> getDocuments() { return documents; }
     public void setDocuments(List<OnboardingDocument> documents) { this.documents = documents; }
 }

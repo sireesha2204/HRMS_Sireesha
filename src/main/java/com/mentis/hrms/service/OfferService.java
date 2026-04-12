@@ -1,27 +1,30 @@
 package com.mentis.hrms.service;
 
 import com.mentis.hrms.dto.OfferRequest;
+import com.mentis.hrms.model.Employee;
 import com.mentis.hrms.model.JobApplication;
 import com.mentis.hrms.model.OfferLetter;
 import com.mentis.hrms.repository.OfferLetterRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 public class OfferService {
@@ -32,6 +35,7 @@ public class OfferService {
     private final SpringTemplateEngine templateEngine;
     private final EmailService emailService;
     private final PdfGenerationService pdfGenerationService;
+    private final EmployeeService employeeService;
 
     @Value("${app.upload.base-path:C:/hrms/uploads}")
     private String basePath;
@@ -41,15 +45,17 @@ public class OfferService {
                         JobApplicationService jobApplicationService,
                         SpringTemplateEngine templateEngine,
                         EmailService emailService,
-                        PdfGenerationService pdfGenerationService) {
+                        PdfGenerationService pdfGenerationService,
+                        EmployeeService employeeService) {
         this.offerLetterRepository = offerLetterRepository;
         this.jobApplicationService = jobApplicationService;
         this.templateEngine = templateEngine;
         this.emailService = emailService;
         this.pdfGenerationService = pdfGenerationService;
+        this.employeeService = employeeService;
     }
 
-    // === EXISTING METHODS (Keep all your current methods) ===
+    // === EXISTING METHODS ===
 
     public List<OfferLetter> getAllOfferLetters() {
         try {
@@ -109,7 +115,7 @@ public class OfferService {
     private void populateOfferData(OfferLetter offer, OfferRequest request) {
         offer.setDesignation(safeValue(request.getDesignation(), "Not Specified"));
         offer.setDepartment(safeValue(request.getDepartment(), "Not Specified"));
-        offer.setJoiningDate(safeValue(request.getJoiningDate(), java.time.LocalDate.now().plusDays(14).toString()));
+        offer.setJoiningDate(safeValue(request.getJoiningDate(), LocalDate.now().plusDays(14).toString()));
         offer.setWorkLocation(safeValue(request.getWorkLocation(), "Not Specified"));
         offer.setEmploymentType(safeValue(request.getEmploymentType(), "Full-time"));
         offer.setAnnualSalary(safeValue(request.getAnnualSalary(), "To be discussed"));
@@ -120,26 +126,37 @@ public class OfferService {
         offer.setOfferType(safeValue(request.getOfferType(), "OFFER"));
         offer.setStatus("DRAFT");
 
-        // FIX: Prevent duplicate names by checking for commas or duplicates
-        String candidateName = safeValue(request.getCandidateName(), "Candidate");
-        if (candidateName != null && candidateName.contains(",")) {
-            // Data is corrupted like "Arjun N,Arjun N" - take only first part
-            candidateName = candidateName.split(",")[0].trim();
+        if (request.getCandidateName() != null) {
+            String cleanName = cleanDuplicateData(request.getCandidateName());
+            offer.setCandidateName(cleanName);
+            logger.info("POPULATE - Set cleaned name: {}", cleanName);
+        } else {
+            offer.setCandidateName("Candidate");
         }
-        // Also check if name appears twice (no comma but repeated)
-        if (candidateName != null && candidateName.split(" ").length > 4) {
-            String[] parts = candidateName.split(" ");
-            candidateName = parts[0] + " " + parts[parts.length - 1];
-        }
-        offer.setCandidateName(candidateName);
 
-        // FIX: Prevent duplicate emails by checking for commas
-        String candidateEmail = safeValue(request.getCandidateEmail(), "candidate@example.com");
-        if (candidateEmail != null && candidateEmail.contains(",")) {
-            // Data is corrupted like "email@example.com,email@example.com" - take only first part
-            candidateEmail = candidateEmail.split(",")[0].trim();
+        if (request.getCandidateEmail() != null) {
+            String cleanEmail = cleanDuplicateData(request.getCandidateEmail());
+            cleanEmail = cleanEmail.replaceAll("\\s+", "");
+            offer.setCandidateEmail(cleanEmail);
+            logger.info("POPULATE - Set cleaned email: {}", cleanEmail);
+        } else {
+            offer.setCandidateEmail("candidate@example.com");
         }
-        offer.setCandidateEmail(candidateEmail);
+    }
+
+    private String cleanDuplicateData(String input) {
+        if (input == null || input.trim().isEmpty()) {
+            return input;
+        }
+        String trimmed = input.trim();
+        if (trimmed.contains(",")) {
+            return trimmed.substring(0, trimmed.indexOf(",")).trim();
+        }
+        String[] parts = trimmed.split("\\s+");
+        if (parts.length > 1 && parts[0].equals(parts[1])) {
+            return parts[0];
+        }
+        return trimmed;
     }
 
     private String safeValue(String value, String defaultValue) {
@@ -150,23 +167,30 @@ public class OfferService {
         if (file == null || file.isEmpty()) {
             return null;
         }
-
         Path signaturesDir = Paths.get(basePath, "signatures");
         Files.createDirectories(signaturesDir);
-
         String fileName = "signature-" + offerId + ".png";
         Path targetPath = signaturesDir.resolve(fileName);
-
         try (InputStream is = file.getInputStream()) {
             Files.copy(is, targetPath, StandardCopyOption.REPLACE_EXISTING);
         }
-
         logger.info("Signature saved: {}", targetPath);
         return "/signatures/" + fileName;
     }
 
     private String generateOfferDocument(OfferLetter offer, String signaturePath) throws Exception {
         logger.info("Generating offer document for ID: {}", offer.getId());
+
+        // Clean data
+        if (offer.getCandidateName() != null) {
+            String cleanName = cleanDuplicateData(offer.getCandidateName());
+            offer.setCandidateName(cleanName);
+        }
+        if (offer.getCandidateEmail() != null) {
+            String cleanEmail = cleanDuplicateData(offer.getCandidateEmail());
+            cleanEmail = cleanEmail.replaceAll("\\s+", "");
+            offer.setCandidateEmail(cleanEmail);
+        }
 
         Context context = new Context();
         context.setVariable("offer", offer);
@@ -187,8 +211,9 @@ public class OfferService {
             context.setVariable("showSignature", false);
         }
 
+        // USE THE CLEAN TEMPLATE
         String templateName = "OFFER".equalsIgnoreCase(offer.getOfferType()) ?
-                "offer-letter-template" : "appointment-letter-template";
+                "clean-offer-template" : "appointment-letter-template";
 
         String htmlContent = templateEngine.process(templateName, context);
         logger.info("Template processed successfully");
@@ -201,17 +226,110 @@ public class OfferService {
         );
     }
 
+    /**
+     * CORRECTED DELETE METHOD - Use this one
+     */
+    public void deleteOffer(Long offerId) {
+        try {
+            logger.info("Attempting to delete offer with id: {}", offerId);
+
+            // Find the offer
+            OfferLetter offer = offerLetterRepository.findById(offerId)
+                    .orElseThrow(() -> new RuntimeException("Offer not found with id: " + offerId));
+
+            // Optional: Add validation - don't delete if already sent
+            if ("SENT".equals(offer.getStatus())) {
+                logger.warn("Attempted to delete a sent offer: {}", offerId);
+                throw new RuntimeException("Cannot delete an offer that has already been sent to candidate");
+            }
+
+            // Delete associated PDF file if it exists - USING CORRECT GETTER
+            if (offer.getOfferFilePath() != null && !offer.getOfferFilePath().isEmpty()) {
+                try {
+                    Path filePath = Paths.get(offer.getOfferFilePath());
+                    boolean deleted = Files.deleteIfExists(filePath);
+                    if (deleted) {
+                        logger.info("Deleted offer file: {}", offer.getOfferFilePath());
+                    } else {
+                        logger.warn("Offer file not found: {}", offer.getOfferFilePath());
+                    }
+                } catch (IOException e) {
+                    logger.warn("Could not delete offer file: {} - {}", offer.getOfferFilePath(), e.getMessage());
+                    // Continue with database deletion even if file delete fails
+                }
+            }
+
+            // Delete the offer from database
+            offerLetterRepository.delete(offer);
+            logger.info("Offer deleted successfully with id: {}", offerId);
+
+        } catch (Exception e) {
+            logger.error("Error in deleteOffer service: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to delete offer: " + e.getMessage());
+        }
+    }
+
+    /**
+     * SIMPLER ALTERNATIVE - Use this if you don't need file deletion
+     */
+    /*
+    public void deleteOffer(Long offerId) {
+        try {
+            logger.info("Attempting to delete offer with id: {}", offerId);
+
+            // Check if offer exists
+            if (!offerLetterRepository.existsById(offerId)) {
+                throw new RuntimeException("Offer not found with id: " + offerId);
+            }
+
+            // Simple delete by ID
+            offerLetterRepository.deleteById(offerId);
+
+            logger.info("Offer deleted successfully with id: {}", offerId);
+
+        } catch (Exception e) {
+            logger.error("Error in deleteOffer service: {}", e.getMessage());
+            throw new RuntimeException("Failed to delete offer: " + e.getMessage());
+        }
+    }
+    */
+
     public OfferLetter createAndGenerateOfferForEmployee(OfferRequest request) throws Exception {
         logger.info("Creating offer for employee ID: {}", request.getEmployeeId());
 
+        Optional<Employee> employeeOpt = employeeService.getEmployeeByEmployeeId(request.getEmployeeId());
+        if (employeeOpt.isEmpty()) {
+            throw new RuntimeException("Employee not found with ID: " + request.getEmployeeId());
+        }
+
+        Employee employee = employeeOpt.get();
+
         OfferLetter offer = new OfferLetter();
         offer.setEmployeeId(request.getEmployeeId());
-        populateOfferData(offer, request);
+        offer.setCandidateName(request.getCandidateName());
+        offer.setCandidateEmail(request.getCandidateEmail());
+        offer.setDesignation(request.getDesignation());
+        offer.setDepartment(request.getDepartment());
+        offer.setJoiningDate(request.getJoiningDate());
+        offer.setWorkLocation(request.getWorkLocation());
+        offer.setEmploymentType(request.getEmploymentType());
+        offer.setAnnualSalary(request.getAnnualSalary());
+        offer.setCurrency(request.getCurrency());
+        offer.setReportingManager(request.getReportingManager());
+        offer.setProbationPeriod(request.getProbationPeriod());
+        offer.setAdditionalNotes(request.getAdditionalNotes());
+        offer.setOfferType(request.getOfferType());
+        offer.setStatus("DRAFT");
+        offer.setCreatedDate(LocalDateTime.now());
 
         offer = offerLetterRepository.save(offer);
-        logger.info("Employee offer created with ID: {}", offer.getId());
+        logger.info("Offer letter saved with ID: {}", offer.getId());
 
-        String signaturePath = handleSignatureUpload(offer.getId(), request.getSignatureFile());
+        String signaturePath = null;
+        if (request.getSignatureFile() != null && !request.getSignatureFile().isEmpty()) {
+            signaturePath = handleSignatureUpload(offer.getId(), request.getSignatureFile());
+        }
+
         String filePath = generateOfferDocument(offer, signaturePath);
         offer.setOfferFilePath(filePath);
         offer.setStatus("GENERATED");
@@ -227,33 +345,31 @@ public class OfferService {
         return offerLetterRepository.findByApplicationId(applicationId);
     }
 
-    // === FIXES FOR COMPILATION ERRORS ===
-    // Add these two methods that OfferController expects
-
-    /**
-     * Unified method to create offer for both application and employee
-     * This is called from OfferController.createOffer()
-     */
     public OfferLetter createOffer(OfferRequest request) throws Exception {
-        logger.info("Unified createOffer called for type: {}", request.getType());
+        logger.info("Creating offer for type: {}", request.getType());
+
+        if (request.getCandidateName() != null) {
+            String cleanName = cleanDuplicateData(request.getCandidateName());
+            request.setCandidateName(cleanName);
+        }
+        if (request.getCandidateEmail() != null) {
+            String cleanEmail = cleanDuplicateData(request.getCandidateEmail());
+            cleanEmail = cleanEmail.replaceAll("\\s+", "");
+            request.setCandidateEmail(cleanEmail);
+        }
 
         if ("EMPLOYEE".equalsIgnoreCase(request.getType())) {
-            if (request.getEmployeeId() == null) {
-                throw new IllegalArgumentException("Employee ID is required for employee offers");
-            }
             return createAndGenerateOfferForEmployee(request);
         } else {
-            if (request.getApplicationId() == null) {
-                throw new IllegalArgumentException("Application ID is required for application offers");
-            }
             return createAndGenerateOffer(request);
         }
     }
 
-    /**
-     * Send offer letter to candidate via email
-     * This is called from OfferController.sendOffer()
-     */
+    // SIMPLE SAVE METHOD - NO WEB ANNOTATIONS!
+    public OfferLetter saveOfferLetter(OfferLetter offer) {
+        return offerLetterRepository.save(offer);
+    }
+
     public OfferLetter sendOfferToCandidate(Long offerId) throws Exception {
         logger.info("Sending offer ID: {}", offerId);
 
@@ -264,7 +380,6 @@ public class OfferService {
             throw new RuntimeException("Offer must be in GENERATED status before sending. Current status: " + offer.getStatus());
         }
 
-        // Send email
         emailService.sendOfferLetter(
                 offer.getCandidateEmail(),
                 offer.getCandidateName(),
@@ -272,7 +387,6 @@ public class OfferService {
                 offer.getOfferType()
         );
 
-        // Update status
         offer.setStatus("SENT");
         offer.setSentDate(LocalDateTime.now());
 

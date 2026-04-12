@@ -13,7 +13,9 @@ import org.springframework.ui.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
-
+// ADD THESE MISSING IMPORTS
+import java.util.ArrayList;
+import java.util.List;
 @Service
 public class DashboardServiceImpl implements DashboardService {
     private static final Logger logger = LoggerFactory.getLogger(DashboardServiceImpl.class);
@@ -35,22 +37,26 @@ public class DashboardServiceImpl implements DashboardService {
         try {
             List<Job> jobs = jobService.getAllJobs();
             List<Department> departments = departmentService.getAllDepartments();
+
+            // FIX: Get recent applications here
             List<JobApplication> recentApplications = applicationService.getRecentApplicationsByStatus("Applied");
 
             model.addAttribute("jobs", jobs);
             model.addAttribute("departments", departments);
-            model.addAttribute("recentApplications", recentApplications);
+            model.addAttribute("recentApplications", recentApplications);  // Add this line
             model.addAttribute("totalCandidates", calculateTotalCandidatesSafely());
             model.addAttribute("interviewsScheduled", calculateInterviewsScheduledSafely());
             model.addAttribute("hiredThisMonth", calculateHiredThisMonthSafely());
             model.addAttribute("inOnboarding", calculateInOnboardingSafely());
             model.addAttribute("offerCount", offerService.getOfferCount());
 
-            logger.info("Dashboard data loaded successfully");
+            logger.info("Dashboard data loaded successfully with {} recent applications",
+                    recentApplications.size());
         } catch (Exception e) {
             logger.error("Failed to load dashboard data: {}", e.getMessage(), e);
             model.addAttribute("error", "Failed to load dashboard data.");
             model.addAttribute("offerCount", 0);
+            model.addAttribute("recentApplications", new ArrayList<>());  // Add empty list on error
         }
     }
 

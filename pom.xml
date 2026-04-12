@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0  "
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance  "
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd  ">
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.mentis</groupId>
@@ -13,16 +13,18 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.5</version>
+        <version>3.2.5</version>
         <relativePath/>
     </parent>
 
     <properties>
         <java.version>17</java.version>
+        <itext.version>7.2.5</itext.version>
+        <html2pdf.version>4.0.5</html2pdf.version>
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Starters -->
+        <!-- Spring Boot Starters - Core -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -39,6 +41,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Database -->
         <dependency>
@@ -47,11 +58,23 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Testing -->
+        <!-- JPA & Hibernate -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- JSON Processing -->
@@ -76,57 +99,41 @@
             <artifactId>google-api-services-calendar</artifactId>
             <version>v3-rev20220715-2.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.auth</groupId>
-            <artifactId>google-auth-library-oauth2-http</artifactId>
-            <version>1.19.0</version>
-        </dependency>
 
-        <!-- PDF Generation -->
-        <!-- Add these compatible dependencies -->
+        <!-- iText PDF Generation - WORKING VERSION (REMOVED pdftest) -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>html2pdf</artifactId>
             <version>4.0.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.itextpdf</groupId>
-            <artifactId>itext7-core</artifactId>
-            <version>7.2.5</version>
-            <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>kernel</artifactId>
             <version>7.2.5</version>
         </dependency>
-
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>layout</artifactId>
             <version>7.2.5</version>
         </dependency>
-
-
-        <!-- Add to your pom.xml dependencies -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>io</artifactId>
+            <version>7.2.5</version>
         </dependency>
-
-        <!-- Add this to pom.xml if missing -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>forms</artifactId>
+            <version>7.2.5</version>
         </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>pdfa</artifactId>
+            <version>7.2.5</version>
+        </dependency>
+        <!-- REMOVED: pdftest dependency as it's not in Maven Central -->
 
-
+        <!-- WebSockets -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-websocket</artifactId>
@@ -136,87 +143,30 @@
             <artifactId>spring-messaging</artifactId>
         </dependency>
 
-        <!-- Add these dependencies if not already present -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-websocket</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-messaging</artifactId>
-        </dependency>
-        <!-- Add this for password encoding -->
-
-
-
-        <!-- Optional: For email if you decide to add it later -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
-        </dependency>
+        <!-- WebJars for WebSocket clients -->
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>sockjs-client</artifactId>
             <version>1.5.1</version>
         </dependency>
-
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>stomp-websocket</artifactId>
             <version>2.3.4</version>
         </dependency>
 
-        <!-- Spring Boot Starter Web -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <!-- Spring Boot Starter Data JPA -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <!-- Add this dependency to your pom.xml -->
+        <!-- Apache Commons Compress -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>1.24.0</version>
         </dependency>
-        <!-- Thymeleaf -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
-        <!-- Add these if missing -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.itextpdf</groupId>
-            <artifactId>itext7-core</artifactId>
-            <version>7.2.6</version>
-            <type>pom</type>
-        </dependency>
+
         <!-- Jakarta Annotations -->
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
         </dependency>
-
-        <!-- Hibernate Core (if not already present) -->
-        <dependency>
-            <groupId>org.hibernate.orm</groupId>
-            <artifactId>hibernate-core</artifactId>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -224,6 +174,14 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

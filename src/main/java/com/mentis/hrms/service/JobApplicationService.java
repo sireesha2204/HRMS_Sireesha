@@ -40,20 +40,28 @@ public class JobApplicationService {
     /* =========================================================
        FIXED: getApplicationById method
     ========================================================= */
+ /* =========================================================
+   FIXED: getApplicationById method - WITH CACHE REFRESH
+======================================================== */
     @Transactional(readOnly = true)
     public JobApplication getApplicationById(Long id) {
         try {
             logger.info("=== ATTEMPTING TO LOAD APPLICATION WITH ID: {} ===", id);
 
-            // First try the simple repository method
+            // Clear any cached data in the persistence context
+            entityManager.clear();
+
+            // Fetch the application from repository
             Optional<JobApplication> optionalApp = repo.findById(id);
 
             if (optionalApp.isPresent()) {
                 JobApplication app = optionalApp.get();
 
+                // Force refresh from database to ensure we have the latest data
+                entityManager.refresh(app);
+
                 // Manually initialize the job to avoid LazyInitializationException
                 if (app.getJob() != null) {
-                    // Trigger initialization of job properties
                     app.getJob().getTitle();
                     app.getJob().getDepartment();
                     app.getJob().getJobType();
@@ -62,6 +70,7 @@ public class JobApplicationService {
 
                 logger.info("=== SUCCESSFULLY LOADED APPLICATION ===");
                 logger.info("Application ID: {}", app.getId());
+                logger.info("Status: {}", app.getStatus());  // Log the status to verify fresh data
                 logger.info("Candidate: {} {}", app.getFirstName(), app.getLastName());
                 logger.info("Email: {}", app.getEmail());
                 logger.info("Phone: {}", app.getPhone());
@@ -168,7 +177,25 @@ public class JobApplicationService {
             throw e;
         }
     }
+    public List<JobApplication> getRecentApplications(int limit) {
+        try {
+            logger.info("Getting {} most recent applications", limit);
 
+            // If limit <= 5, use the optimized query
+            if (limit <= 5) {
+                return repo.findTop5ByOrderByApplicationDateDesc()
+                        .stream().limit(limit).collect(Collectors.toList());
+            }
+
+            // Otherwise get all ordered
+            List<JobApplication> allApps = repo.findAllByOrderByApplicationDateDesc();
+            return allApps.stream().limit(limit).collect(Collectors.toList());
+
+        } catch (Exception e) {
+            logger.error("Error getting recent applications: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
+    }
     /* ----------------------------------------------------------
        Save without file (status updates, interview scheduling)
     ---------------------------------------------------------- */

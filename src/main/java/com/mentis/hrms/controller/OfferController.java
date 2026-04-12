@@ -111,8 +111,8 @@ public class OfferController {
             // Create offer using the unified method
             OfferLetter offer = offerService.createOffer(offerRequest);
 
-            // Redirect with success parameters
-            return "redirect:/dashboard/offer-candidates?success=Offer+generated+successfully&offerId=" + offer.getId();
+            // FIXED: Redirect with success parameters
+            return "redirect:/dashboard/hr/offer-candidates?success=Offer+generated+successfully&offerId=" + offer.getId() + "&showPopup=true";
 
         } catch (Exception e) {
             logger.error("Error saving offer: {}", e.getMessage());
@@ -122,31 +122,65 @@ public class OfferController {
         }
     }
 
-    @GetMapping("/offers/download/{offerId}")
-    public ResponseEntity<byte[]> downloadOffer(@PathVariable Long offerId) {
+    @GetMapping("/hr/view-offer/{id}")
+    public String viewOffer(@PathVariable Long id, Model model) {
         try {
-            OfferLetter offer = offerService.getOfferById(offerId)
-                    .orElseThrow(() -> new RuntimeException("Offer not found"));
-
-            String filePath = basePath + "/" + offer.getOfferFilePath();
-            Path path = Paths.get(filePath);
-
-            byte[] pdfBytes = Files.readAllBytes(path);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDisposition(ContentDisposition.attachment()
-                    .filename("offer-letter-" + offerId + ".pdf").build());
-
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(pdfBytes);
-
+            Optional<OfferLetter> offerOpt = offerService.getOfferById(id);
+            if (offerOpt.isPresent()) {
+                model.addAttribute("offer", offerOpt.get());
+                return "offer/view-offer";
+            } else {
+                return "redirect:/dashboard/hr/offer-candidates?error=Offer+not+found";
+            }
         } catch (Exception e) {
-            logger.error("Error downloading offer: {}", e.getMessage());
-            return ResponseEntity.status(500).build();
+            logger.error("Error viewing offer: {}", e.getMessage());
+            return "redirect:/dashboard/hr/offer-candidates?error=Error+loading+offer";
         }
     }
+
+
+    // Add this method to your OfferController.java
+    @PostMapping("/offers/delete/{offerId}")
+    @ResponseBody
+    public Map<String, Object> deleteOffer(@PathVariable Long offerId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            logger.info("Received request to delete offer with id: {}", offerId);
+
+            // Check if offer exists before deleting
+            Optional<OfferLetter> offerOpt = offerService.getOfferById(offerId);
+            if (offerOpt.isPresent()) {
+                OfferLetter offer = offerOpt.get();
+
+                // Optional: Check if offer is already in use (has employee or onboarding started)
+                if (offer.getEmployeeId() != null && !offer.getEmployeeId().isEmpty()) {
+                    response.put("success", false);
+                    response.put("error", "Cannot delete offer that has been converted to employee");
+                    response.put("canDelete", false);
+                    return response;
+                }
+
+                // Call service method to delete the offer
+                offerService.deleteOffer(offerId);
+
+                response.put("success", true);
+                response.put("message", "Offer deleted successfully");
+                response.put("offerId", offerId);
+                response.put("candidateName", offer.getCandidateName());
+
+                logger.info("Offer deleted successfully with id: {}", offerId);
+            } else {
+                response.put("success", false);
+                response.put("error", "Offer not found with id: " + offerId);
+            }
+        } catch (Exception e) {
+            logger.error("Error deleting offer: {}", e.getMessage(), e);
+            response.put("success", false);
+            response.put("error", "Failed to delete offer: " + e.getMessage());
+        }
+        return response;
+    }
+    // REMOVED: Duplicate download method @GetMapping("/offers/download/{offerId}")
 
     @GetMapping("/offers/candidates")
     public String showOfferCandidates(Model model) {
